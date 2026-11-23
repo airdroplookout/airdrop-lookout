@@ -132,7 +132,7 @@ $("#signup-form").addEventListener("submit", async (e) => {
   $("#signup-msg").className = j.ok ? "ok" : "err";
 });
 $("#pay-submit").addEventListener("click", async () => {
-  const body = { email: $("#pay-email").value.trim(), network: $("#pay-network").value, txid: $("#pay-txid").value.trim(), amount_usdt: 5 };
+  const body = { email: $("#pay-email").value.trim(), network: $("#pay-network").value, txid: $("#pay-txid").value.trim(), amount_usdt: 10 };
   const r = await fetch("/api/admin/payments", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body) });
   const j = await r.json();
   $("#pay-msg").textContent = j.ok ? "Transaction ID submitted. Adil will verify it and mark you paid." : (j.error || "Could not submit.");
