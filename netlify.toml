@@ -1,0 +1,73 @@
+# Airdrop Lookout — Netlify config.
+# Hosting: Netlify (free). Static front-end in public/, server code in
+# netlify/functions/. No build step. Env vars are set in the Netlify
+# dashboard (Site settings -> Environment variables), never in this file.
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# /api/* rewrites: the front-end and the weekly job keep calling the same
+# /api/* URLs as before; Netlify rewrites each one (200, invisible to the
+# browser) to its function. Query strings pass through, so PATCH
+# /api/admin/airdrops?id=...&status=... still works. For the three
+# /api/admin/issues/:id/... routes the id is also passed as ?id= so the
+# function does not depend on how Netlify reports the rewritten path.
+[[redirects]]
+  from = "/api/board"
+  to = "/.netlify/functions/board"
+  status = 200
+[[redirects]]
+  from = "/api/subscribe"
+  to = "/.netlify/functions/subscribe"
+  status = 200
+[[redirects]]
+  from = "/api/unsubscribe"
+  to = "/.netlify/functions/unsubscribe"
+  status = 200
+[[redirects]]
+  from = "/api/settings"
+  to = "/.netlify/functions/settings"
+  status = 200
+[[redirects]]
+  from = "/api/admin/airdrops"
+  to = "/.netlify/functions/admin-airdrops"
+  status = 200
+[[redirects]]
+  from = "/api/admin/export"
+  to = "/.netlify/functions/admin-export"
+  status = 200
+[[redirects]]
+  from = "/api/admin/issues"
+  to = "/.netlify/functions/admin-issues"
+  status = 200
+[[redirects]]
+  from = "/api/admin/overview"
+  to = "/.netlify/functions/admin-overview"
+  status = 200
+[[redirects]]
+  from = "/api/admin/payments"
+  to = "/.netlify/functions/admin-payments"
+  status = 200
+[[redirects]]
+  from = "/api/admin/payments/verify"
+  to = "/.netlify/functions/admin-payments-verify"
+  status = 200
+[[redirects]]
+  from = "/api/admin/settings"
+  to = "/.netlify/functions/admin-settings"
+  status = 200
+[[redirects]]
+  from = "/api/admin/issues/:id/publish"
+  to = "/.netlify/functions/admin-issues-id-publish?id=:id"
+  status = 200
+[[redirects]]
+  from = "/api/admin/issues/:id/preview"
+  to = "/.netlify/functions/admin-issues-id-preview?id=:id"
+  status = 200
+[[redirects]]
+  from = "/api/admin/issues/:id/send"
+  to = "/.netlify/functions/admin-issues-id-send?id=:id"
+  status = 200

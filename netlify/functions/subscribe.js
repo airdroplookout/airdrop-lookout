@@ -1,7 +1,10 @@
-import { json, sbJson, validEmail } from "../_lib.js";
+// Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
+// Original: functions/api/subscribe.js. Route is rewritten to this function in netlify.toml;
+// the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
+import { json, sbJson, validEmail, handlerFor } from "./_lib.js";
 // POST /api/subscribe  { email } — email only, never a wallet address.
 // Free trial = 30 days from signup.
-export async function onRequestPost(context) {
+async function onPost(context) {
   try {
     const { email } = await context.request.json();
     if (!validEmail(email)) return json({ ok: false, error: "Enter a valid email address." }, 400);
@@ -15,3 +18,5 @@ export async function onRequestPost(context) {
     return json({ ok: true, subscriber: rows[0] || null, free_trial_ends_at: ends });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }
+
+export const handler = handlerFor({ POST: onPost });

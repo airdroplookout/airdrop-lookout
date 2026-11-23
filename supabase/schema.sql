@@ -113,7 +113,7 @@ create trigger trg_settings_updated before update on public.settings for each ro
 -- ---------------------------------------------------------------- Row Level Security
 -- Public (anon) may: read active airdrops + published issues, insert a subscriber
 -- (signup), update only their own unsubscribe via the server function.
--- Everything else goes through the service-role key, which the Cloudflare
+-- Everything else goes through the service-role key, which the Netlify
 -- Functions use server-side. Never expose the service-role key in the browser.
 alter table public.subscribers enable row level security;
 alter table public.issues enable row level security;
