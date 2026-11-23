@@ -126,3 +126,10 @@ table.prices tr:last-child td{border-bottom:none}
 .sr-only{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
 @media(max-width:900px){.hero-grid{grid-template-columns:1fr}.teaser-layout{grid-template-columns:1fr}.news-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.news-grid{grid-template-columns:1fr}.teaser-item{flex-direction:column;align-items:flex-start;gap:4px}.teaser-item .deadline{text-align:left;white-space:normal}}
+
+/* Reserved ad slots — newspaper-style boxes inviting advertisers. */
+.ad-slot{border:2px dashed var(--border);border-radius:14px;padding:22px 18px;text-align:center;background:transparent;margin:14px 0}
+.ad-slot h3{margin:0 0 6px;font-size:18px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.ad-slot p{margin:0 0 10px;color:var(--muted);font-size:14px}
+.ad-slot p.small{margin:0}
+.ad-slot a{font-weight:700}
