@@ -307,6 +307,16 @@ export async function sendViaResend(context, { to, subject, html, attachments })
   return r.json();
 }
 export function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim().toLowerCase()); }
+// Today's date (YYYY-MM-DD) in the owner's timezone — the Visits card
+// counts by Toronto days, not UTC days, so "Today" matches what Adil sees.
+export function torontoToday(d = new Date()) {
+  const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d);
+  const o = {}; for (const x of p) o[x.type] = x.value;
+  return `${o.year}-${o.month}-${o.day}`;
+}
+export function addDaysIso(iso, n) {
+  const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10);
+}
 // Canonical public base URL for links readers see (PDF button, unsubscribe).
 // The Netlify SITE_URL env var still holds the pre-domain Netlify subdomain
 // (with a trailing slash, which produced "//issues/..." links); the site's

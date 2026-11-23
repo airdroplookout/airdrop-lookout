@@ -37,6 +37,12 @@ $$(".nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.
 // Hidden owner route: /manage opens the Manage view. There is no public
 // link to it anywhere on the site — only someone who knows the URL gets here.
 if (window.location.pathname.replace(/\/+$/, "") === "/manage") show("manage");
+// Visits counter — one count per browser session, public pages only
+// (never /manage, so the owner's own visits do not inflate the numbers).
+if (window.location.pathname.replace(/\/+$/, "") !== "/manage" && !sessionStorage.getItem("aw_visit_counted")) {
+  sessionStorage.setItem("aw_visit_counted", "1");
+  fetch("/api/track", { method: "POST", keepalive: true }).catch(() => {});
+}
 
 async function loadBoard(){
   try {
@@ -239,6 +245,8 @@ async function loadAdmin(){
   const j = await r.json();
   $("#login-card").classList.add("hidden"); $("#manage-body").classList.remove("hidden");
   $("#send-count").textContent = j.active_subscribers ?? "—";
+  const v = j.visits || {};
+  $("#visits").innerHTML = `<table><tr><th>Today</th><th>This week</th><th>This month</th><th>This year</th></tr><tr><td>${v.today ?? "—"}</td><td>${v.week ?? "—"}</td><td>${v.month ?? "—"}</td><td>${v.year ?? "—"}</td></tr></table>`;
   $("#last-send").textContent = j.last_send ? `Last send: ${j.last_send}` : "No send yet.";
   $("#send-issue").innerHTML = (j.issues||[]).map(i => `<option value="${i.id}">${esc(i.title)} (${i.status})</option>`).join("");
   $("#subscribers").innerHTML = `<table><tr><th>Email</th><th>Status</th><th>Free month ends</th><th></th></tr>${(j.subscribers||[]).map(s=>`<tr><td>${esc(s.email)}</td><td>${esc(s.status)}</td><td>${s.free_trial_ends_at?new Date(s.free_trial_ends_at).toLocaleDateString():"—"}</td><td>${s.status==="archived"

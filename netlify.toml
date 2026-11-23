@@ -39,6 +39,10 @@
   to = "/.netlify/functions/board"
   status = 200
 [[redirects]]
+  from = "/api/track"
+  to = "/.netlify/functions/track"
+  status = 200
+[[redirects]]
   from = "/api/subscribe"
   to = "/.netlify/functions/subscribe"
   status = 200
