@@ -85,13 +85,14 @@
   <section data-page="manage" class="hidden">
     <h1>Manage — owner only</h1>
     <div class="card" id="login-card">
-      <label for="admin-key">Admin API key</label>
-      <input id="admin-key" type="password" autocomplete="off" placeholder="ADMIN_API_KEY">
-      <p><button class="btn" id="login-btn">Open Manage</button></p>
-      <p class="muted small">The key is kept in this browser session only. Rotate it in Netlify → Site settings → Environment variables; old keys stop working immediately.</p>
+      <label for="admin-password">Manage password</label>
+      <input id="admin-password" type="password" autocomplete="current-password" placeholder="Your Manage password">
+      <p><button class="btn" id="login-btn">Log in</button></p>
+      <p class="muted small">One short password you chose — it works from any phone, and you stay logged in for 30 days.</p>
       <p id="login-msg" role="status"></p>
     </div>
     <div id="manage-body" class="hidden">
+      <p><button class="btn ghost" id="logout-btn">Log out</button></p>
       <div class="card"><h2>Send the newsletter to all subscribers</h2>
         <p><span id="send-count">—</span> subscribers will receive it.</p>
         <label for="send-issue">Issue</label><select id="send-issue"></select>

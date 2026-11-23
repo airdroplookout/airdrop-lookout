@@ -3,7 +3,10 @@
 const CFG = window.AIRDROP_LOOKOUT_CONFIG || { SITE_DOMAIN: "airdroplookout.com", SITE_URL: "https://airdroplookout.com" };
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => [...document.querySelectorAll(s)];
-let adminKey = sessionStorage.getItem("aw_admin_key") || "";
+let adminSession = localStorage.getItem("aw_admin_session") || "";
+// The old long admin key is never asked for in Manage any more; drop any
+// copy this browser still holds from before the password login.
+sessionStorage.removeItem("aw_admin_key"); localStorage.removeItem("aw_admin_key");
 let boardData = { airdrops: [], issue: null, settings: {} };
 
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
@@ -17,7 +20,7 @@ function show(view){
   $$(".nav button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
   if (view === "board") renderBoard();
   if (view === "issue") renderIssue();
-  if (view === "manage" && adminKey) loadAdmin();
+  if (view === "manage" && adminSession) loadAdmin();
 }
 $$(".nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
 
@@ -81,10 +84,16 @@ $("#pay-submit").addEventListener("click", async () => {
 });
 
 // ---- Manage (owner) ----
-const adminHeaders = () => ({ "content-type":"application/json", "x-admin-key": adminKey });
+const adminHeaders = () => ({ "content-type":"application/json", "x-admin-session": adminSession });
 async function loadAdmin(){
   const r = await fetch("/api/admin/overview", { headers: adminHeaders() });
-  if (!r.ok){ $("#login-msg").textContent = "Wrong key, or the admin API is not deployed yet."; return; }
+  if (!r.ok){
+    // Session expired or invalid — back to the password form.
+    adminSession = ""; localStorage.removeItem("aw_admin_session");
+    $("#login-card").classList.remove("hidden"); $("#manage-body").classList.add("hidden");
+    $("#login-msg").textContent = r.status === 401 ? "Your session ended — please log in again." : "Manage could not load — check the site is deployed.";
+    return;
+  }
   const j = await r.json();
   $("#login-card").classList.add("hidden"); $("#manage-body").classList.remove("hidden");
   $("#send-count").textContent = j.active_subscribers ?? "—";
@@ -109,7 +118,22 @@ async function subAction(id, what){
   if (!r.ok) { alert(j.error || "That did not work."); return; }
   loadAdmin();
 }
-$("#login-btn").addEventListener("click", () => { adminKey = $("#admin-key").value.trim(); sessionStorage.setItem("aw_admin_key", adminKey); loadAdmin(); });
+$("#login-btn").addEventListener("click", async () => {
+  const pw = $("#admin-password").value;
+  $("#login-msg").textContent = "Logging in…";
+  const r = await fetch("/api/admin/login", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ password: pw }) });
+  const j = await r.json().catch(()=>({}));
+  if (!r.ok || !j.token) { $("#login-msg").textContent = r.status === 500 ? (j.error || "Login is not set up yet.") : "Wrong password — try again."; $("#admin-password").value = ""; return; }
+  adminSession = j.token; localStorage.setItem("aw_admin_session", adminSession);
+  $("#admin-password").value = ""; $("#login-msg").textContent = "";
+  loadAdmin();
+});
+$("#admin-password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#login-btn").click(); });
+$("#logout-btn").addEventListener("click", () => {
+  adminSession = ""; localStorage.removeItem("aw_admin_session");
+  $("#manage-body").classList.add("hidden"); $("#login-card").classList.remove("hidden");
+  $("#login-msg").textContent = "Logged out.";
+});
 $("#preview-btn").addEventListener("click", async () => {
   const id = $("#send-issue").value; if(!id) return;
   const r = await fetch(`/api/admin/issues/${id}/preview`, { headers: adminHeaders() }); const j = await r.json();

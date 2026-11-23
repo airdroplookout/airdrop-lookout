@@ -16,6 +16,10 @@
 # /api/admin/issues/:id/... routes the id is also passed as ?id= so the
 # function does not depend on how Netlify reports the rewritten path.
 [[redirects]]
+  from = "/api/admin/login"
+  to = "/.netlify/functions/admin-login"
+  status = 200
+[[redirects]]
   from = "/api/board"
   to = "/.netlify/functions/board"
   status = 200

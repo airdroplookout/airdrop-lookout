@@ -12,6 +12,7 @@
 // handlerFor builds a Cloudflare-style `context` ({ request, env, params })
 // from the Netlify `event`, calls the method handler, and converts the
 // returned Response into Netlify's { statusCode, headers, body } shape.
+import { createHmac, timingSafeEqual } from "node:crypto";
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
 }
@@ -53,11 +54,53 @@ export function isAdmin(context) {
   const req = context.request;
   const key = req.headers.get("x-admin-key") || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   const expected = context.env.ADMIN_API_KEY;
-  return Boolean(expected && key && key === expected);
+  if (expected && key && timingSafeCompare(key, expected)) return true;
+  // Or a Manage session token (from POST /api/admin/login with the
+  // ADMIN_PASSWORD). See createAdminSession / verifyAdminSession below.
+  const session = req.headers.get("x-admin-session") || "";
+  return Boolean(session && verifyAdminSession(context.env, session));
 }
 export function requireAdmin(context) {
-  if (!isAdmin(context)) return json({ ok: false, error: "unauthorized — valid ADMIN_API_KEY required" }, 401);
+  if (!isAdmin(context)) return json({ ok: false, error: "unauthorized — valid admin login required" }, 401);
   return null;
+}
+// --- Manage password sessions (no database, no stored token) ---
+// Token format: base64url("admin").<expiry-ms>.<hmac-hex>
+// The HMAC is over "<payload>.<expiry>" keyed by ADMIN_API_KEY, so a token
+// is only valid if it was minted by this server, and only until expiry.
+// Sessions last 30 days; logging in again mints a fresh one.
+export const ADMIN_SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const SESSION_PAYLOAD = "admin";
+function b64url(s) { return Buffer.from(s, "utf8").toString("base64url"); }
+function signSession(secret, payloadB64, expiry) {
+  return createHmac("sha256", secret).update(`${payloadB64}.${expiry}`).digest("hex");
+}
+export function createAdminSession(env) {
+  const expiry = Date.now() + ADMIN_SESSION_TTL_MS;
+  const payloadB64 = b64url(SESSION_PAYLOAD);
+  return { token: `${payloadB64}.${expiry}.${signSession(env.ADMIN_API_KEY, payloadB64, expiry)}`, expires_at: new Date(expiry).toISOString() };
+}
+export function verifyAdminSession(env, token) {
+  try {
+    const secret = env.ADMIN_API_KEY;
+    if (!secret || typeof token !== "string") return false;
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const [payloadB64, expiryStr, sig] = parts;
+    if (payloadB64 !== b64url(SESSION_PAYLOAD)) return false;
+    const expiry = Number(expiryStr);
+    if (!Number.isFinite(expiry) || expiry <= Date.now()) return false;
+    const expected = signSession(secret, payloadB64, expiry);
+    return timingSafeCompare(sig, expected);
+  } catch { return false; }
+}
+// Constant-time string comparison (for passwords and tokens). Never use
+// === for secrets: it leaks how many leading characters matched.
+export function timingSafeCompare(a, b) {
+  const ba = Buffer.from(String(a ?? ""), "utf8");
+  const bb = Buffer.from(String(b ?? ""), "utf8");
+  if (ba.length !== bb.length) return false;
+  return timingSafeEqual(ba, bb);
 }
 export function sb(context, path, opts = {}) {
   // Supabase REST via the service-role key (bypasses RLS, server-side only).

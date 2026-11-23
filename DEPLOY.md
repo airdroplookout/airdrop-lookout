@@ -125,7 +125,12 @@ subscribers automatically, without Adil uploading anything or intervening.
   Stored in the Muse scheduled job only (never in code, never in chat).
   **Rotate/revoke:** change it in Netlify environment variables *and* in the
   Muse job, then trigger a redeploy so the functions pick it up. Old keys stop
-  working immediately.
+  working immediately. (It also signs Manage session tokens — rotating it logs
+  everyone out of Manage.)
+- `ADMIN_PASSWORD` — the short Manage password the owner chooses (Netlify env
+  var, server-side only). Manage logs in with this password instead of the
+  long key; login mints a 30-day session token. Until it is set, Manage login
+  refuses with a clear error.
 - The site URL (`https://airdroplookout.com`, or the `*.netlify.app` address
   until the domain is added).
 
