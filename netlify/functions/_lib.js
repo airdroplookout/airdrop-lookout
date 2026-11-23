@@ -287,11 +287,11 @@ ${rows}
 // redirect page. One recipient per call, so nobody sees anyone else's
 // address. Server-side only: RESEND_API_KEY comes from env (Netlify Site
 // settings -> Environment variables). From address defaults to
-// newsletter@airdroplookout.com, overridable via RESEND_SENDER_EMAIL.
+// contact@airdroplookout.com, overridable via RESEND_SENDER_EMAIL.
 export async function sendViaResend(context, { to, subject, html, attachments }) {
   const apiKey = context.env.RESEND_API_KEY;
   if (!apiKey) throw new Error("RESEND_API_KEY is not set — add it in Netlify Site settings -> Environment variables, then redeploy.");
-  const from = context.env.RESEND_SENDER_EMAIL || "newsletter@airdroplookout.com";
+  const from = context.env.RESEND_SENDER_EMAIL || "contact@airdroplookout.com";
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
