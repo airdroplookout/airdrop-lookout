@@ -306,7 +306,14 @@ export async function sendViaResend(context, { to, subject, html, attachments })
   if (!r.ok) throw new Error(`Resend ${r.status}: ${await r.text()}`);
   return r.json();
 }
-export function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim().toLowerCase()); }
+// Real email format only, max 50 characters (owner's rule, Nov 23 2026):
+// letters/digits and . _ % + - before the @, a domain with at least one dot.
+// Rejects script tags, spaces, and oversized input before anything is stored.
+export function validEmail(e) {
+  const s = String(e || "").trim().toLowerCase();
+  if (s.length < 5 || s.length > 50) return false;
+  return /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/.test(s);
+}
 // Today's date (YYYY-MM-DD) in the owner's timezone — the Visits card
 // counts by Toronto days, not UTC days, so "Today" matches what Adil sees.
 export function torontoToday(d = new Date()) {

@@ -201,6 +201,7 @@ $$("[data-view-link]").forEach(b => b.addEventListener("click", () => { show(b.d
 $("#signup-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = $("#email").value.trim();
+  if (email.length > 50 || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) { $("#signup-msg").textContent = "Please enter a real email address, under 50 characters."; $("#signup-msg").className = "err"; return; }
   const r = await fetch("/api/subscribe", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ email }) });
   const j = await r.json();
   $("#signup-msg").textContent = j.ok ? `You're in — free month started. Check ${email} for the welcome email.` : (j.error || "Signup failed.");
@@ -211,6 +212,7 @@ const miniForm = $("#mini-signup-form");
 if (miniForm) miniForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = $("#mini-email").value.trim();
+  if (email.length > 50 || !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) { $("#mini-signup-msg").textContent = "Please enter a real email address, under 50 characters."; $("#mini-signup-msg").className = "err"; return; }
   const r = await fetch("/api/subscribe", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ email }) });
   const j = await r.json();
   $("#mini-signup-msg").textContent = j.ok ? `You're in — free month started. Check ${email} for the welcome email.` : (j.error || "Signup failed.");

@@ -39,7 +39,7 @@
         <p class="muted">One short email when a claim opens, a deadline moves, or a rumour turns out to be a scam. No spam, no shilling.</p>
         <p class="pricing-line">Free now — $10/month from January 1, 2027</p>
         <form id="signup-form"><label for="email">Email address</label>
-          <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
+          <input id="email" type="email" required maxlength="50" pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" title="Enter a real email address, under 50 characters." placeholder="you@example.com" autocomplete="email">
           <p><button class="btn" type="submit">Subscribe</button></p>
           <p class="small muted">No wallet address. No card. Unsubscribe any time.</p>
           <p id="signup-msg" role="status"></p>
@@ -98,7 +98,7 @@
           </div>
           <div class="mini-newsletter">
             <h3>Never check 20 sites again.</h3><p>Get the board in one email — claims, deadlines, and scam warnings, only when something actually changes.</p>
-            <form id="mini-signup-form"><label for="mini-email" class="sr-only">Email address</label><input id="mini-email" type="email" placeholder="Email address" required autocomplete="email"><button type="submit">Subscribe to the newsletter</button></form>
+            <form id="mini-signup-form"><label for="mini-email" class="sr-only">Email address</label><input id="mini-email" type="email" placeholder="Email address" required maxlength="50" pattern="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" title="Enter a real email address, under 50 characters." autocomplete="email"><button type="submit">Subscribe to the newsletter</button></form>
             <p class="pricing-line pricing-line--sidebar">Free now — $10/month from January 1, 2027</p>
             <p id="mini-signup-msg" role="status"></p>
           </div>
