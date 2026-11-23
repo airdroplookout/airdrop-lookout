@@ -9,7 +9,7 @@
 import { json, sbJson, requireAdmin, handlerFor } from "./_lib.js";
 
 async function onPatch(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const url = new URL(context.request.url);
     const id = url.searchParams.get("id");
@@ -17,7 +17,7 @@ async function onPatch(context) {
     if (!id || (action !== "archive" && action !== "restore")) {
       return json({ ok: false, error: "id and action=archive|restore are required" }, 400);
     }
-    const rows = await sbJson(context, `subscribers?id=eq.${id}&limit=1`);
+    const rows = await sbJson(context, `subscribers?id=eq.${encodeURIComponent(id)}&limit=1`);
     const sub = rows[0];
     if (!sub) return json({ ok: false, error: "subscriber not found" }, 404);
     let patch;
@@ -29,18 +29,18 @@ async function onPatch(context) {
       const prev = (sub.notes || "").match(/archived_from:([a-z_]+)/);
       patch = { status: prev ? prev[1] : "free_trial", notes: null };
     }
-    const updated = await sbJson(context, `subscribers?id=eq.${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+    const updated = await sbJson(context, `subscribers?id=eq.${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify(patch) });
     return json({ ok: true, subscriber: updated[0] || null });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }
 
 async function onDelete(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const url = new URL(context.request.url);
     const id = url.searchParams.get("id");
     if (!id) return json({ ok: false, error: "id is required" }, 400);
-    await sbJson(context, `subscribers?id=eq.${id}`, { method: "DELETE" });
+    await sbJson(context, `subscribers?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
     return json({ ok: true, removed: id });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }

@@ -6,7 +6,7 @@ import { json, sbJson, requireAdmin, handlerFor } from "./_lib.js";
 // Body: any of { usdt_wallet_address, usdt_network, notification_email, telegram_link, site_domain }
 // The wallet address is a PUBLIC receiving address. Never a seed phrase / private key.
 async function onPost(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const b = await context.request.json();
     for (const [k, v] of Object.entries(b)) {

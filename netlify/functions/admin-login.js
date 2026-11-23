@@ -8,19 +8,37 @@
 // signed with ADMIN_API_KEY — see createAdminSession in _lib.js), which
 // the Manage page stores in localStorage and sends as x-admin-session.
 // On failure returns 401 with no hint about what was wrong.
+// Rate limiting: 5 wrong passwords from one client IP inside 15 minutes
+// locks that IP out of this endpoint for 15 minutes (429). The check runs
+// before the password is compared, and this endpoint is the only place a
+// password is ever accepted, so the lockout cannot be bypassed by
+// switching endpoints. State lives in the settings table — see
+// checkLoginAllowed / recordFailedLogin in _lib.js.
 // No email is sent here.
-import { json, handlerFor, timingSafeCompare, createAdminSession } from "./_lib.js";
+import { json, handlerFor, timingSafeCompare, createAdminSession, getSessionVersion, checkLoginAllowed, recordFailedLogin, clearLoginLockout, LOGIN_MAX_FAILS } from "./_lib.js";
 
 async function onPost(context) {
   const password = context.env.ADMIN_PASSWORD;
   if (!password) return json({ ok: false, error: "ADMIN_PASSWORD is not set — add it in Netlify Site settings -> Environment variables, then redeploy." }, 500);
   if (!context.env.ADMIN_API_KEY) return json({ ok: false, error: "ADMIN_API_KEY is not set — it signs the session token." }, 500);
+  const allowed = await checkLoginAllowed(context);
+  if (!allowed.allowed) {
+    const mins = Math.max(1, Math.ceil(allowed.retry_after_ms / 60000));
+    return json({ ok: false, error: `Too many wrong passwords — try again in ${mins} minute${mins === 1 ? "" : "s"}.` }, 429);
+  }
   const body = await context.request.json().catch(() => ({}));
   const given = typeof body.password === "string" ? body.password : "";
   if (!given || !timingSafeCompare(given, password)) {
-    return json({ ok: false, error: "Invalid password." }, 401);
+    const entry = await recordFailedLogin(context).catch(() => null);
+    if (entry && entry.locked_until) {
+      return json({ ok: false, error: "Too many wrong passwords — locked out for 15 minutes." }, 429);
+    }
+    const remaining = entry ? Math.max(0, LOGIN_MAX_FAILS - entry.fails) : null;
+    return json({ ok: false, error: remaining !== null ? `Invalid password. ${remaining} attempt${remaining === 1 ? "" : "s"} left before a 15-minute lockout.` : "Invalid password." }, 401);
   }
-  const session = createAdminSession(context.env);
+  await clearLoginLockout(context).catch(() => {});
+  const version = await getSessionVersion(context);
+  const session = createAdminSession(context.env, version);
   return json({ ok: true, token: session.token, expires_at: session.expires_at });
 }
 

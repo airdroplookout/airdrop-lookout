@@ -134,8 +134,24 @@ async function loadAdmin(){
   $("#last-send").textContent = j.last_send ? `Last send: ${j.last_send}` : "No send yet.";
   $("#send-issue").innerHTML = (j.issues||[]).map(i => `<option value="${i.id}">${esc(i.title)} (${i.status})</option>`).join("");
   $("#subscribers").innerHTML = `<table><tr><th>Email</th><th>Status</th><th>Free month ends</th><th></th></tr>${(j.subscribers||[]).map(s=>`<tr><td>${esc(s.email)}</td><td>${esc(s.status)}</td><td>${s.free_trial_ends_at?new Date(s.free_trial_ends_at).toLocaleDateString():"—"}</td><td>${s.status==="archived"
-    ? `<button onclick="subAction('${s.id}','restore')">Restore</button>`
-    : `<button onclick="subAction('${s.id}','archive')">Archive</button> <button onclick="subAction('${s.id}','remove')">Remove</button>`}</td></tr>`).join("")}</table>`;
+    ? `<button data-sub-action="restore" data-sub-id="${esc(s.id)}">Restore</button>`
+    : `<button data-sub-action="archive" data-sub-id="${esc(s.id)}">Archive</button> <button data-sub-action="remove" data-sub-id="${esc(s.id)}">Remove</button>`}</td></tr>`).join("")}</table>`;
+  // "Log out everywhere" — revokes every Manage session on every device
+  // (bumps the session version server-side). Added once, next to Log out.
+  if (!$("#logout-all-btn")) {
+    const b = document.createElement("button");
+    b.id = "logout-all-btn"; b.className = "btn ghost"; b.textContent = "Log out everywhere";
+    b.addEventListener("click", async () => {
+      if (!confirm("Log out every Manage session on every device? You will need to log in again.")) return;
+      const r = await fetch("/api/admin/logout-all", { method: "POST", headers: adminHeaders() });
+      const jj = await r.json().catch(() => ({}));
+      if (!r.ok) { alert(jj.error || "That did not work."); return; }
+      adminSession = ""; localStorage.removeItem("aw_admin_session");
+      $("#manage-body").classList.add("hidden"); $("#login-card").classList.remove("hidden");
+      $("#login-msg").textContent = "All sessions logged out — please log in again.";
+    });
+    $("#logout-btn")?.after(b);
+  }
   $("#issues").innerHTML = (j.issues||[]).map(i=>`<p>${esc(i.title)} — ${i.status} · sent ${i.send_count||0}</p>`).join("") || "No issues yet.";
   $("#airdrops-admin").innerHTML = (j.airdrops||[]).map(a=>`<p>${esc(a.name)} — ${a.status} · ${a.trust_score??"—"}/100 · closes ${a.deadline_at?new Date(a.deadline_at).toLocaleDateString():"—"}</p>`).join("") || "No airdrops yet.";
   $("#payments").innerHTML = (j.payments||[]).map(p=>`<p>${esc(p.email)} — ${p.amount_usdt} USDT (${esc(p.network||"")}) · ${esc(p.txid)} · ${p.verified?"verified":"pending"}</p>`).join("") || "No payments yet.";
@@ -144,10 +160,16 @@ async function loadAdmin(){
   $("#set-email").value = s.notification_email||""; $("#set-telegram").value = s.telegram_link||"";
 }
 // Remove = out for good (row deleted). Archive = set aside, can be restored.
+// Buttons carry data-sub-action / data-sub-id (no inline onclick — the
+// site's Content-Security-Policy blocks inline handlers).
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-sub-action]");
+  if (b) subAction(b.dataset.subId, b.dataset.subAction);
+});
 async function subAction(id, what){
   if (what === "remove" && !confirm("Remove this subscriber for good? They will be deleted and cannot be restored.")) return;
   const method = what === "remove" ? "DELETE" : "PATCH";
-  const url = what === "remove" ? `/api/admin/subscribers?id=${id}` : `/api/admin/subscribers?id=${id}&action=${what}`;
+  const url = what === "remove" ? `/api/admin/subscribers?id=${encodeURIComponent(id)}` : `/api/admin/subscribers?id=${encodeURIComponent(id)}&action=${what}`;
   const r = await fetch(url, { method, headers: adminHeaders() }); const j = await r.json().catch(()=>({}));
   if (!r.ok) { alert(j.error || "That did not work."); return; }
   loadAdmin();
@@ -201,4 +223,25 @@ $("#save-settings").addEventListener("click", async () => {
   const r = await fetch("/api/admin/settings", { method:"POST", headers: adminHeaders(), body: JSON.stringify(body) }); const j = await r.json();
   $("#settings-msg").textContent = j.ok ? "Settings saved." : (j.error||"Save failed.");
 });
+// Unsubscribe link from a newsletter email: ?unsubscribe=<signed token>.
+// The token proves the clicker owns that address (it was sent to them),
+// so the server accepts it — a bare email in the URL never worked and is
+// no longer accepted at all. Runs once on page load.
+(function handleUnsubscribe(){
+  const params = new URLSearchParams(location.search);
+  const token = params.get("unsubscribe");
+  if (!token) return;
+  history.replaceState(null, "", location.pathname);
+  const banner = document.createElement("p");
+  banner.id = "unsub-msg"; banner.className = "muted";
+  banner.textContent = "Unsubscribing…";
+  (document.querySelector("#app") || document.body).prepend(banner);
+  fetch("/api/unsubscribe", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token }) })
+    .then(r => r.json().then(j => ({ ok: r.ok, j })))
+    .then(({ ok, j }) => {
+      banner.textContent = ok ? "You are unsubscribed — you will not receive further issues." : (j.error || "That unsubscribe link did not work.");
+      banner.className = ok ? "ok" : "err";
+    })
+    .catch(() => { banner.textContent = "Could not unsubscribe — please try again from the latest issue email."; banner.className = "err"; });
+})();
 loadBoard();

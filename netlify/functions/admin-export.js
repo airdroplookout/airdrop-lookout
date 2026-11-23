@@ -5,7 +5,7 @@ import { sbJson, requireAdmin, handlerFor } from "./_lib.js";
 // GET /api/admin/export — subscribers as CSV. Owner only.
 // Columns: email,status,free_trial_ends_at,paid_until,created_at
 async function onGet(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const rows = await sbJson(context, "subscribers?order=created_at.asc&select=email,status,free_trial_ends_at,paid_until,created_at");
     const csv = ["email,status,free_trial_ends_at,paid_until,created_at",

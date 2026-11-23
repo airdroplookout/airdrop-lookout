@@ -4,7 +4,7 @@
 import { json, sbJson, requireAdmin, trustScore, handlerFor } from "./_lib.js";
 // GET /api/admin/overview — everything Manage needs in one call. Owner only.
 async function onGet(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const [subscribers, issues, airdrops, payments, settingsRows] = await Promise.all([
       sbJson(context, "subscribers?order=created_at.desc&limit=500"),

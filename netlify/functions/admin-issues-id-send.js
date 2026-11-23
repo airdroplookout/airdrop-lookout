@@ -1,7 +1,7 @@
 // Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
 // Original: functions/api/admin/issues/[id]/send.js. Route is rewritten to this function in netlify.toml;
 // the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
-import { json, sbJson, requireAdmin, sendViaResend, emailHtml, validEmail, siteBaseUrl, handlerFor } from "./_lib.js";
+import { json, sbJson, requireAdmin, sendViaResend, emailHtml, validEmail, siteBaseUrl, handlerFor, createUnsubscribeToken } from "./_lib.js";
 // POST /api/admin/issues/:id/send — send a PUBLISHED issue to every active subscriber,
 // one individual email each via the Resend Send Email API, with the issue
 // HTML in the body, a "Read this issue as a PDF" button linking to the PDF
@@ -16,17 +16,17 @@ import { json, sbJson, requireAdmin, sendViaResend, emailHtml, validEmail, siteB
 // Body (optional): { test_email } — send to ONE test address only, for TEST_PLAN.md step 3.
 const BAD_ADDRESS = "enjoyhamikton@gmail.com";
 async function onPost(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const id = context.params.id;
     const body = await context.request.json().catch(() => ({}));
-    const issues = await sbJson(context, `issues?id=eq.${id}&limit=1`);
+    const issues = await sbJson(context, `issues?id=eq.${encodeURIComponent(id)}&limit=1`);
     const issue = issues[0]; if (!issue) return json({ ok: false, error: "issue not found" }, 404);
     if (issue.status !== "published" && !body.test_email) return json({ ok: false, error: "Publish the issue first (POST /publish) — drafts are never sent." }, 400);
     if (!context.env.RESEND_API_KEY) return json({ ok: false, error: "RESEND_API_KEY is not set — add it in Netlify Site settings -> Environment variables, then redeploy." }, 500);
-    const links = await sbJson(context, `issue_airdrops?issue_id=eq.${id}&order=position.asc`);
+    const links = await sbJson(context, `issue_airdrops?issue_id=eq.${encodeURIComponent(id)}&order=position.asc`);
     const drops = [];
-    for (const l of links) { const d = await sbJson(context, `airdrops?id=eq.${l.airdrop_id}&limit=1`); if (d[0]) drops.push(d[0]); }
+    for (const l of links) { const d = await sbJson(context, `airdrops?id=eq.${encodeURIComponent(l.airdrop_id)}&limit=1`); if (d[0]) drops.push(d[0]); }
     const siteUrl = siteBaseUrl(context.env);
     // Issue N -> /issues/issue-N.pdf (Issue 1 -> issue-1.pdf, etc).
     const m = String(issue.title || "").match(/issue\s+(\d+)/i);
@@ -49,13 +49,16 @@ async function onPost(context) {
     if (!recipients.length) return json({ ok: false, error: "No recipients." }, 400);
     let sent = 0, failed = 0; const failures = [];
     for (const r of recipients) {
-      const unsub = `${siteUrl}/?unsubscribe=${encodeURIComponent(r.email)}`;
+      // Signed unsubscribe link: only the owner of this address can use
+      // it, because it was sent to them. A bare email in the URL would
+      // let anyone unsubscribe anyone.
+      const unsub = `${siteUrl}/?unsubscribe=${encodeURIComponent(createUnsubscribeToken(context.env, r.email))}`;
       const html = emailHtml({ title: issue.title, intro: issue.intro, safety_tip: issue.safety_tip, drops, siteUrl, unsubscribeUrl: unsub, pdfUrl });
       try { await sendViaResend(context, { to: r.email, subject: `Airdrop Lookout — ${issue.title}`, html, attachments }); sent++; }
       catch (e) { failed++; failures.push(`${r.email}: ${e.message}`); }
     }
     if (!body.test_email) {
-      await sbJson(context, `issues?id=eq.${id}`, { method: "PATCH",
+      await sbJson(context, `issues?id=eq.${encodeURIComponent(id)}`, { method: "PATCH",
         body: JSON.stringify({ send_count: (issue.send_count||0)+sent, send_failed: (issue.send_failed||0)+failed, last_send_at: new Date().toISOString() }) });
     }
     return json({ ok: true, sent, failed, failures: failures.slice(0, 10), test: Boolean(body.test_email), pdf: pdfFilename, attached: true });

@@ -7,7 +7,7 @@ import { json, sbJson, requireAdmin, trustScore, handlerFor } from "./_lib.js";
 // This is the endpoint the Muse weekly job calls. It creates a DRAFT only —
 // publishing is a separate, explicit step (see [id]/publish.js).
 async function onPost(context) {
-  const denied = requireAdmin(context); if (denied) return denied;
+  const denied = await requireAdmin(context); if (denied) return denied;
   try {
     const b = await context.request.json();
     if (!b.title) return json({ ok: false, error: "title is required" }, 400);

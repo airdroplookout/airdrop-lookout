@@ -20,6 +20,10 @@
   to = "/.netlify/functions/admin-login"
   status = 200
 [[redirects]]
+  from = "/api/admin/logout-all"
+  to = "/.netlify/functions/admin-logout-all"
+  status = 200
+[[redirects]]
   from = "/api/board"
   to = "/.netlify/functions/board"
   status = 200
@@ -79,3 +83,16 @@
   from = "/api/admin/issues/:id/send"
   to = "/.netlify/functions/admin-issues-id-send?id=:id"
   status = 200
+
+# Security headers on every page. The CSP baseline is deliberately
+# conservative: scripts only from this site (no inline handlers — the
+# front-end uses addEventListener), styles from this site plus inline
+# style attributes, images from this site, no plugins, no framing.
+# API responses also carry nosniff / frame / referrer headers from _lib.js.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
