@@ -32,6 +32,10 @@
   to = "/.netlify/functions/settings"
   status = 200
 [[redirects]]
+  from = "/api/admin/subscribers"
+  to = "/.netlify/functions/admin-subscribers"
+  status = 200
+[[redirects]]
   from = "/api/admin/airdrops"
   to = "/.netlify/functions/admin-airdrops"
   status = 200

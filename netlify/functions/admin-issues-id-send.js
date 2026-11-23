@@ -21,7 +21,7 @@ async function onPost(context) {
     const siteUrl = context.env.SITE_URL || "https://airdroplookout.com";
     const recipients = body.test_email
       ? [{ email: body.test_email }]
-      : await sbJson(context, "subscribers?status=neq.unsubscribed&select=email");
+      : await sbJson(context, "subscribers?status=neq.unsubscribed&status=neq.archived&select=email");
     if (!recipients.length) return json({ ok: false, error: "No recipients." }, 400);
     let sent = 0, failed = 0; const failures = [];
     for (const r of recipients) {
