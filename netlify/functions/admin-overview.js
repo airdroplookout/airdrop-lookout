@@ -13,7 +13,7 @@ async function onGet(context) {
       sbJson(context, "payments?order=created_at.desc&limit=200"),
       sbJson(context, "settings?select=key,value"),
     ]);
-    const active = subscribers.filter(s => s.status !== "unsubscribed").length;
+    const active = subscribers.filter(s => s.status !== "unsubscribed" && s.status !== "archived").length;
     const last = issues.filter(i => i.last_send_at).sort((a,b)=>new Date(b.last_send_at)-new Date(a.last_send_at))[0];
     return json({ ok: true, subscribers, issues, airdrops, payments,
       settings: Object.fromEntries(settingsRows.map(r => [r.key, r.value])),

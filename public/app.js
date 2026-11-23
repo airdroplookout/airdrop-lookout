@@ -90,13 +90,24 @@ async function loadAdmin(){
   $("#send-count").textContent = j.active_subscribers ?? "—";
   $("#last-send").textContent = j.last_send ? `Last send: ${j.last_send}` : "No send yet.";
   $("#send-issue").innerHTML = (j.issues||[]).map(i => `<option value="${i.id}">${esc(i.title)} (${i.status})</option>`).join("");
-  $("#subscribers").innerHTML = `<table><tr><th>Email</th><th>Status</th><th>Free month ends</th></tr>${(j.subscribers||[]).map(s=>`<tr><td>${esc(s.email)}</td><td>${esc(s.status)}</td><td>${s.free_trial_ends_at?new Date(s.free_trial_ends_at).toLocaleDateString():"—"}</td></tr>`).join("")}</table>`;
+  $("#subscribers").innerHTML = `<table><tr><th>Email</th><th>Status</th><th>Free month ends</th><th></th></tr>${(j.subscribers||[]).map(s=>`<tr><td>${esc(s.email)}</td><td>${esc(s.status)}</td><td>${s.free_trial_ends_at?new Date(s.free_trial_ends_at).toLocaleDateString():"—"}</td><td>${s.status==="archived"
+    ? `<button onclick="subAction('${s.id}','restore')">Restore</button>`
+    : `<button onclick="subAction('${s.id}','archive')">Archive</button> <button onclick="subAction('${s.id}','remove')">Remove</button>`}</td></tr>`).join("")}</table>`;
   $("#issues").innerHTML = (j.issues||[]).map(i=>`<p>${esc(i.title)} — ${i.status} · sent ${i.send_count||0}</p>`).join("") || "No issues yet.";
   $("#airdrops-admin").innerHTML = (j.airdrops||[]).map(a=>`<p>${esc(a.name)} — ${a.status} · ${a.trust_score??"—"}/100 · closes ${a.deadline_at?new Date(a.deadline_at).toLocaleDateString():"—"}</p>`).join("") || "No airdrops yet.";
   $("#payments").innerHTML = (j.payments||[]).map(p=>`<p>${esc(p.email)} — ${p.amount_usdt} USDT (${esc(p.network||"")}) · ${esc(p.txid)} · ${p.verified?"verified":"pending"}</p>`).join("") || "No payments yet.";
   const s = j.settings||{};
   $("#set-wallet").value = s.usdt_wallet_address||""; $("#set-network").value = s.usdt_network||"";
   $("#set-email").value = s.notification_email||""; $("#set-telegram").value = s.telegram_link||"";
+}
+// Remove = out for good (row deleted). Archive = set aside, can be restored.
+async function subAction(id, what){
+  if (what === "remove" && !confirm("Remove this subscriber for good? They will be deleted and cannot be restored.")) return;
+  const method = what === "remove" ? "DELETE" : "PATCH";
+  const url = what === "remove" ? `/api/admin/subscribers?id=${id}` : `/api/admin/subscribers?id=${id}&action=${what}`;
+  const r = await fetch(url, { method, headers: adminHeaders() }); const j = await r.json().catch(()=>({}));
+  if (!r.ok) { alert(j.error || "That did not work."); return; }
+  loadAdmin();
 }
 $("#login-btn").addEventListener("click", () => { adminKey = $("#admin-key").value.trim(); sessionStorage.setItem("aw_admin_key", adminKey); loadAdmin(); });
 $("#preview-btn").addEventListener("click", async () => {

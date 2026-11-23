@@ -13,7 +13,7 @@ async function onGet(context) {
     const links = await sbJson(context, `issue_airdrops?issue_id=eq.${id}&order=position.asc`);
     const drops = [];
     for (const l of links) { const d = await sbJson(context, `airdrops?id=eq.${l.airdrop_id}&limit=1`); if (d[0]) drops.push(d[0]); }
-    const subs = await sbJson(context, "subscribers?status=neq.unsubscribed&select=email");
+    const subs = await sbJson(context, "subscribers?status=neq.unsubscribed&status=neq.archived&select=email");
     const siteUrl = context.env.SITE_URL || "https://airdroplookout.com";
     const body = [
       `Airdrop Lookout — ${issue.title}`, "",
