@@ -27,7 +27,7 @@ async function onPost(context) {
     if (dupes[0]) return json({ ok: false, error: "That transaction ID was already submitted." }, 400);
     const rows = await sbJson(context, "payments", { method: "POST", body: JSON.stringify({
       email, txid, network: b.network || null,
-      amount_usdt: b.amount_usdt || 5, verified: false,
+      amount_usdt: b.amount_usdt || 10, verified: false,
     })});
     return json({ ok: true, payment: rows[0] });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
