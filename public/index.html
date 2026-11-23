@@ -20,57 +20,95 @@
 </div></header>
 <main class="wrap" id="app">
   <section data-page="home">
-    <div class="hero">
-      <span class="pill">Privacy-first · No wallet required</span>
-      <h1>Every airdrop worth claiming.<br>No wallet required.</h1>
-      <p>One weekly digest with the deadlines, eligibility rules and step-by-step
-      claim instructions — and nothing you have to hand over to use it. We never
-      ask for your wallet address, seed phrase or private key.</p>
-      <div class="card" id="countdown-card"><strong id="countdown">Treehouse closes in 2d — Nov 25, 07:00 UTC</strong><div class="muted small" id="countdown-sub">Next closing drop. All deadlines are UTC.</div></div>
+    <div class="hero hero-grid">
+      <div>
+        <span class="pill">Privacy-first · No wallet required</span>
+        <h1>Every airdrop worth claiming.<br>No wallet required.</h1>
+        <p>One weekly digest with the deadlines, eligibility rules and step-by-step
+        claim instructions — and nothing you have to hand over to use it. We never
+        ask for your wallet address, seed phrase or private key.</p>
+        <div class="hero-stats">
+          <div><b id="stat-tracked">7</b><span>Tracked this week</span></div>
+          <div><b id="stat-soon">2</b><span>Deadlines in 7 days</span></div>
+          <div><b id="stat-next">Nov 30</b><span>Next big deadline</span></div>
+          <div class="stat-pricing"><b>Free now</b><span>Newsletter · $10/mo from Jan 1, 2027</span></div>
+        </div>
+        <div class="card" id="countdown-card"><strong id="countdown">Treehouse closes in 2d — Nov 25, 07:00 UTC</strong><div class="muted small" id="countdown-sub">Next closing drop. All deadlines are UTC.</div></div>
+      </div>
+      <div class="card" id="signup-card">
+        <h2>Subscribe to the newsletter</h2>
+        <p class="muted">One short email when a claim opens, a deadline moves, or a rumour turns out to be a scam. No spam, no shilling.</p>
+        <p class="pricing-line">Free now — $10/month from January 1, 2027</p>
+        <form id="signup-form"><label for="email">Email address</label>
+          <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
+          <p><button class="btn" type="submit">Subscribe</button></p>
+          <p class="small muted">No wallet address. No card. Unsubscribe any time.</p>
+          <p id="signup-msg" role="status"></p>
+        </form>
+        <p><a class="btn ghost" id="telegram-btn" href="#" data-telegram-placeholder="true">Free alerts on Telegram ↗</a></p>
+        <p class="small muted" id="telegram-note">Telegram channel link being added — check back soon.</p>
+      </div>
     </div>
     <div class="proofbar" id="proofbar">7 airdrops tracked this week · 2 deadlines in the next 7 days · Last checked: Nov 22, 2026</div>
-    <section id="top-drops" aria-label="Closing soon">
-      <h2>Closing soon — verified on the official pages</h2>
-      <div class="grid">
-        <div class="card drop-card">
-          <span class="badge hot"><span class="dot green"></span>Confirmed · <span class="mono" data-deadline="2026-11-25T07:00:00Z">2d left</span></span>
-          <h3>Treehouse (TREE)</h3>
-          <p class="muted small">Ethereum · Difficulty: Easy · Claim — gas only, no new capital · Est. ≈ 5 min</p>
-          <p>Closes <strong class="mono">Nov 25, 07:00 UTC</strong> · Trust score <span class="trust small-trust">92/100</span></p>
-          <p class="small">Season 2 claim for “Final Nuts” holders, governance voters and Squirrel Council NFT holders. Unclaimed TREE returns to the treasury.</p>
-          <p class="small"><a href="https://www.treehouse.finance/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
-        </div>
-        <div class="card drop-card">
-          <span class="badge hot"><span class="dot green"></span>Confirmed · <span class="mono" data-deadline="2026-11-28T12:00:00Z">5d left</span></span>
-          <h3>Doppler Finance (XDP)</h3>
-          <p class="muted small">Base / XRP Ledger · Difficulty: Easy · Claim — gas only, no new capital · Est. ≈ 5 min</p>
-          <p>Closes <strong class="mono">Nov 28, 12:00 UTC</strong> · Trust score <span class="trust small-trust">90/100</span></p>
-          <p class="small">Genesis airdrop claim. Only for Base addresses registered by July 30, 2026 — registration is closed, so this cannot be farmed now.</p>
-          <p class="small"><a href="https://www.doppler.finance/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
-        </div>
-        <div class="card drop-card">
-          <span class="badge soon"><span class="dot green"></span>Confirmed · <span class="mono" data-deadline="2026-12-04T12:00:00Z">11d left</span></span>
-          <h3>Aster (ASTER)</h3>
-          <p class="muted small">BNB Chain · Difficulty: Medium · Claim — gas only, no new capital · Est. ≈ 10 min</p>
-          <p>Closes <strong class="mono">Dec 4, 12:00 UTC</strong> · Trust score <span class="trust small-trust">88/100</span></p>
-          <p class="small">Stage 6 “Convergence” — only for participants who chose the full-allocation option back in April. 64M ASTER in this stage.</p>
-          <p class="small"><a href="https://www.asterdex.com/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
-        </div>
+    <section id="prices" aria-label="Top coin prices">
+      <h2>Top coin prices</h2>
+      <p class="muted">A compact board, not a trading terminal. Live from a free public feed, refreshed every 5 minutes.</p>
+      <div class="card price-board">
+        <div class="price-scroll"><table class="prices" aria-label="Top cryptocurrency prices">
+          <thead><tr><th>#&nbsp; Coin</th><th>Price (USD)</th><th>24h</th><th>Market cap</th><th>24h volume</th><th>Signal</th></tr></thead>
+          <tbody id="price-board-body"><tr><td colspan="6" class="muted">Loading prices…</td></tr></tbody>
+        </table></div>
+        <div class="board-foot"><span id="price-status">Loading live prices…</span><span>Source: CoinGecko free API · Refreshes every 5 min</span></div>
       </div>
-      <p><button class="btn ghost" data-view-link="board">See the full board — 7 live drops</button></p>
     </section>
-    <div class="card" id="signup-card">
-      <h2>Start free — keep it free</h2>
-      <p class="muted">Email only. Sign up before January 1, 2027 and keep your membership free — after that, new members pay $10/month in USDT.</p>
-      <form id="signup-form"><label for="email">Email address</label>
-        <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
-        <p><button class="btn" type="submit">Get the free month</button></p>
-        <p class="small muted">No wallet address. No card. Unsubscribe any time.</p>
-        <p id="signup-msg" role="status"></p>
-      </form>
-      <p><a class="btn ghost" id="telegram-btn" href="#" data-telegram-placeholder="true">Free alerts on Telegram ↗</a></p>
-      <p class="small muted" id="telegram-note">Telegram channel link being added — check back soon.</p>
-    </div>
+    <section id="airdrops" aria-label="Airdrops today">
+      <h2>Airdrops — today’s headlines</h2>
+      <p class="muted">Just the names and deadlines. The full insight lives in the newsletter.</p>
+      <div class="teaser-layout">
+        <div>
+          <div class="teaser-list" id="teaser-list" aria-label="Current airdrops — headlines only"><p class="muted" style="padding:16px">Loading today’s drops…</p></div>
+          <div class="teaser-prompt">
+            <h3>Want the full picture?</h3>
+            <p>For more insight and the most up-to-date information about current airdrops, subscribe to the newsletter.</p>
+            <div class="prompt-actions">
+              <a class="btn" href="#signup-card" id="teaser-subscribe-btn">Subscribe to the newsletter</a>
+              <span class="prompt-price">Free now — $10/month from January 1, 2027</span>
+            </div>
+          </div>
+        </div>
+        <aside class="side">
+          <div class="side-card">
+            <h3>🔥 Trending now</h3><p class="muted small">What the market is actually talking about — snapshot, Nov 23, 2026.</p>
+            <ol class="trend">
+              <li><span class="rank">01</span><div><b>Bitcoin rebounds from a 2-year low</b><span>$55,130 low Saturday → ~$61,500 today as futures recover · CoinDesk</span></div></li>
+              <li><span class="rank">02</span><div><b>Solana leads the top 7</b><span>+5.46% in 24h, ahead of XRP +4.51%</span></div></li>
+              <li><span class="rank">03</span><div><b>“Is there a Base airdrop?”</b><span>Answer is still no — and searches keep spiking</span></div></li>
+              <li><span class="rank">04</span><div><b>Pieverse tops the top-100 gainers</b><span>+18.37% in 24h · Sky steepest drop at −5.41%</span></div></li>
+              <li><span class="rank">05</span><div><b>Humanity $H unlock — $16.7M</b><span>292.9M H unlocked Nov 23 at 10:13 UTC</span></div></li>
+            </ol>
+          </div>
+          <div class="mini-newsletter">
+            <h3>Never check 20 sites again.</h3><p>Get the board in one email — claims, deadlines, and scam warnings, only when something actually changes.</p>
+            <form id="mini-signup-form"><label for="mini-email" class="sr-only">Email address</label><input id="mini-email" type="email" placeholder="Email address" required autocomplete="email"><button type="submit">Subscribe to the newsletter</button></form>
+            <p class="pricing-line pricing-line--sidebar">Free now — $10/month from January 1, 2027</p>
+            <p id="mini-signup-msg" role="status"></p>
+          </div>
+          <div class="side-card"><h3>Today on the calendar</h3><p class="muted small">From the public events feed — Nov 23, 2026.</p><div class="calendar-list"><div><b>OKX × ICE</b> — Tokenized securities venue (OKXICE) launches<br><span class="muted small">Monday, Nov 23</span></div><div><b>SagaEVM</b> — Final shutdown<br><span class="muted small">Monday, Nov 23</span></div><div><b>PancakeSwap</b> — CAKE bridge out of opBNB closes 00:00 UTC<br><span class="muted small">Monday, Nov 23</span></div></div></div>
+        </aside>
+      </div>
+    </section>
+    <section id="news" aria-label="Latest in crypto">
+      <h2>Latest in crypto</h2>
+      <p class="muted">Short, sourced, and in plain English. Snapshot — Nov 23, 2026.</p>
+      <div class="news-grid">
+        <article class="news-card"><div class="src"><span>CoinDesk · Markets</span><time>Nov 23, 2026</time></div><h3>Bitcoin trades near $61,500 as the weekend rebound faces its first Wall Street test</h3><p>Bitcoin bounced from $55,130 — its lowest in over two years after sellers broke summer support near $57,700 — as U.S. stock futures rose. Whether the rebound holds at the open is today’s question.</p><footer>Market update · BTC, ETH, SOL</footer></article>
+        <article class="news-card"><div class="src"><span>Blockchain Reporter</span><time>Updated Nov 16</time></div><h3><a href="https://blockchainreporter.net/how-to-farm-the-base-airdrop-in-2026-a-step-by-step-guide/" target="_blank" rel="noopener">Base airdrop 2026: no token yet — facts and scam warnings</a></h3><p>No Base token, snapshot, or eligibility rules exist as of Nov 16. The guide was rewritten from a farming guide into a warning: any site offering a Base claim today is a drainer.</p><footer>Explainer · Base, Coinbase</footer></article>
+        <article class="news-card"><div class="src"><span>CoinBeat</span><time>Nov 19, 2026</time></div><h3><a href="http://coinbeat.news/bitget-launches-ai-trading-airdrop-with-anthropic-tokens" target="_blank" rel="noopener">Bitget launches AI trading airdrop with Anthropic tokens</a></h3><p>First-time users of Bitget’s AI trading features can qualify for up to 105 USDT plus Anthropic stock tokens for completing steps and sharing feedback.</p><footer>Campaign · Bitget, AI</footer></article>
+        <article class="news-card"><div class="src"><span>Market roundup</span><time>Nov 23 · 1:00 AM KST</time></div><h3>Rebound enters a second day across large caps</h3><p>Bitcoin +1.95% to $60,918.95, Ethereum +2.44% reclaiming $1,700, Solana +0.32% and XRP +0.18% in the earlier CoinMarketCap snapshot — momentum that extended into the U.S. session above.</p><footer>Roundup · CoinMarketCap data</footer></article>
+        <article class="news-card"><div class="src"><span>Binance Square · Foresight</span><time>Nov 23 · 08:24 UTC</time></div><h3><a href="https://www.binance.com/en/square/post/11-23-2026-ai-trends-flop-network-testnet-to-launch-november-24-with-airdrops-based-on-ai-agent-usage-391295194308563" target="_blank" rel="noopener">Flop Network testnet launches Nov 24, airdrops tied to agent usage</a></h3><p>Agents can claim testnet FLOP daily via Technocore chat or a single API call — but only real usage counts. The KOL program starts at mainnet.</p><footer>Testnet · Flop, AI agents</footer></article>
+        <article class="news-card"><div class="src"><span>Syndicate · Calendar</span><time>Nov 23, 2026</time></div><h3><a href="https://sndct.app/" target="_blank" rel="noopener">A packed Monday: OKXICE launch, Stellar Bell vote, LayerZero staking</a></h3><p>Three dated events land the same day — a tokenized-securities venue, a mainnet upgrade vote, and pre-genesis staking — the kind of cluster the Lookout calendar is built to catch.</p><footer>Calendar · OKX, Stellar, LayerZero</footer></article>
+      </div>
+    </section>
     <div class="card verify-strip"><h2>How we verify</h2>
       <p>Every deadline is checked against the project’s <strong>official page</strong> — never a DM, never a repost. Last checked: <strong>Nov 22, 2026</strong>.</p>
       <p class="small"><a href="https://www.treehouse.finance/" target="_blank" rel="noopener">Treehouse ↗</a> · <a href="https://www.doppler.finance/" target="_blank" rel="noopener">Doppler Finance ↗</a> · <a href="https://www.asterdex.com/" target="_blank" rel="noopener">Aster ↗</a> · <a href="https://midnight.gd/" target="_blank" rel="noopener">Midnight ↗</a> · <a href="https://predict.fun/" target="_blank" rel="noopener">Predict.fun ↗</a> · <a href="https://standx.com/" target="_blank" rel="noopener">StandX ↗</a> · <a href="https://www.grass.io/" target="_blank" rel="noopener">Grass ↗</a></p>
@@ -103,10 +141,11 @@
   </section>
   <section data-page="board" class="hidden">
     <h1>Airdrop board</h1>
-    <p class="muted">Live airdrops, in deadline order. <span id="board-count"></span></p>
+    <p class="muted">Names and deadlines only — the full insight, eligibility and steps are in the newsletter. <span id="board-count"></span></p>
+    <div class="card teaser-prompt"><h3>Want the full picture?</h3><p>For more insight and the most up-to-date information about current airdrops, subscribe to the newsletter.</p><p><a class="btn" href="#" id="board-subscribe-btn">Subscribe to the newsletter</a> <span class="prompt-price">Free now — $10/month from January 1, 2027</span></p></div>
     <div class="tabs"><button data-filter="all" class="active">All</button><button data-filter="confirmed">Confirmed</button><button data-filter="testnet">Testnet (free)</button><button data-filter="mainnet">Mainnet</button><button data-filter="ending">Ending soon</button></div>
     <label for="board-search">Search</label><input id="board-search" placeholder="Search by name, token or chain…">
-    <div class="grid" id="board"></div>
+    <div class="teaser-list" id="board"></div>
   </section>
   <section data-page="issue" class="hidden"><h1>Latest issue</h1><div id="issue"></div></section>
   <section data-page="safety" class="hidden">

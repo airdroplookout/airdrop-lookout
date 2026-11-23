@@ -59,8 +59,29 @@ async function loadBoard(){
     const w = j.settings?.usdt_wallet_address || "TS5zyeDzJw9tjA56QtA8PFBEpLX4ywDQc2", n = j.settings?.usdt_network || "TRC20";
     $("#pay-address").textContent = w ? `Wallet address (${n||"USDT"}): ${w}` : "Wallet address: to be added by the owner.";
     $("#foot-domain").textContent = CFG.SITE_DOMAIN;
-    renderBoard(); renderIssue();
-  } catch(e){ $("#board").innerHTML = `<p class="err">Could not load the board. Check the site is deployed and Supabase is connected.</p>`; }
+    renderBoard(); renderIssue(); renderTeaser(); updateHeroStats();
+  } catch(e){ $("#board").innerHTML = `<p style="padding:16px" class="err">Could not load the board. Check the site is deployed and Supabase is connected.</p>`; const tl = $("#teaser-list"); if (tl) tl.innerHTML = "<p class=\"muted\" style=\"padding:16px\">Could not load today’s drops — check back shortly.</p>"; }
+}
+// Front-page teaser — names + deadlines only. The full insight,
+// eligibility and steps live in the newsletter, not on the public page.
+function teaserRows(list){
+  return list.map(a => `<article class="teaser-item"><h3>${esc(a.name)}${a.token?` (${esc(a.token)})`:""}</h3><span class="deadline">Deadline<b>${a.deadline_at?new Date(a.deadline_at).toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"}):"—"} · ${countdownText(a.deadline_at)}</b></span></article>`).join("");
+}
+function renderTeaser(){
+  const el = $("#teaser-list"); if (!el) return;
+  const list = (boardData.airdrops||[]).filter(a => a.deadline_at).sort((a,b)=>new Date(a.deadline_at)-new Date(b.deadline_at));
+  const open = list.filter(a => new Date(a.deadline_at) > Date.now());
+  const rows = (open.length ? open : list).slice(0, 8);
+  el.innerHTML = rows.length ? teaserRows(rows)
+    : "<p class=\"muted\" style=\"padding:16px\">No live drops right now — check back for the next issue.</p>";
+}
+function updateHeroStats(){
+  const drops = boardData.airdrops||[];
+  const soon = drops.filter(a => a.deadline_at && (new Date(a.deadline_at)-Date.now()) > 0 && (new Date(a.deadline_at)-Date.now()) < 7*864e5).length;
+  const next = drops.filter(a => a.deadline_at && new Date(a.deadline_at) > new Date()).sort((a,b)=>new Date(a.deadline_at)-new Date(b.deadline_at))[0];
+  const t = $("#stat-tracked"); if (t) t.textContent = drops.length;
+  const s = $("#stat-soon"); if (s) s.textContent = soon;
+  const n = $("#stat-next"); if (n && next) n.textContent = new Date(next.deadline_at).toLocaleDateString("en-CA",{month:"short",day:"numeric"});
 }
 function renderBoard(){
   const q = ($("#board-search").value||"").toLowerCase();
@@ -70,17 +91,11 @@ function renderBoard(){
   if (f === "testnet") list = list.filter(isTestnet);
   if (f === "mainnet") list = list.filter(a => !isTestnet(a));
   if (f === "ending") list = list.filter(a => a.deadline_at && (new Date(a.deadline_at)-Date.now()) < 7*864e5);
+  list = list.slice().sort((a,b)=>new Date(a.deadline_at||0)-new Date(b.deadline_at||0));
   $("#board-count").textContent = `${list.length} live drop(s).`;
-  $("#board").innerHTML = list.map(a => `<div class="card drop-card">
-    <span class="badge ${a.deadline_at && (new Date(a.deadline_at)-Date.now())<7*864e5 ? "hot":"soon"}">${a.verified?'<span class="dot green"></span>Confirmed':esc(a.status||"active")} · <span class="mono">${countdownText(a.deadline_at)}</span></span>
-    <h3>${esc(a.name)} ${a.token?`(${esc(a.token)})`:""}</h3>
-    <p class="muted small">${esc(a.chain||"")} · Difficulty: ${diffLabel(a)} · ${costLabel(a)} · Est. ${timeLabel(a)}</p>
-    <p class="small">Closes: <span class="mono">${a.deadline_at?new Date(a.deadline_at).toUTCString():"—"}</span></p>
-    ${trustBadge(a.trust_score)}
-    <p><strong>Eligibility:</strong> ${esc(a.eligibility||"—")}</p>
-    <ul class="steps">${(a.steps||[]).map((s,i)=>`<li><label><input type="checkbox"> Step ${i+1}: ${esc(s)}</label></li>`).join("")}</ul>
-    ${a.source_url?`<p class="small"><a href="${esc(a.source_url)}" target="_blank" rel="noopener">Official project page ↗</a> — claim only from the official page.</p>`:""}
-  </div>`).join("") || (f === "testnet" ? "<p>No testnet drops tracked right now — every live drop is a mainnet claim.</p>" : "<p>No drops match.</p>");
+  // Teaser rows only — name, chain and deadline. No eligibility, steps,
+  // trust scores or source links on the public page.
+  $("#board").innerHTML = list.map(a => `<article class="teaser-item"><div><h3>${esc(a.name)} ${a.token?`(${esc(a.token)})`:""}</h3><p class="muted small" style="margin:2px 0 0">${esc(a.chain||"")}${a.verified?" · Confirmed":""}</p></div><span class="deadline">Deadline<b>${a.deadline_at?new Date(a.deadline_at).toLocaleDateString("en-CA",{month:"short",day:"numeric",year:"numeric"}):"—"} · ${countdownText(a.deadline_at)}</b></span></article>`).join("") || (f === "testnet" ? "<p style=\"padding:16px\">No testnet drops tracked right now — every live drop is a mainnet claim.</p>" : "<p style=\"padding:16px\">No drops match.</p>");
 }
 $$("[data-filter]").forEach(b => b.addEventListener("click", () => { $$("[data-filter]").forEach(x=>x.classList.remove("active")); b.classList.add("active"); renderBoard(); }));
 $("#board-search").addEventListener("input", renderBoard);
@@ -90,6 +105,57 @@ function renderIssue(){
   $("#issue").innerHTML = iss ? `<div class="card"><h2>${esc(iss.title)}</h2><p class="muted">${esc(iss.week_label||"")}</p><p>${esc(iss.intro||"")}</p><p>${esc(iss.safety_tip||"")}</p></div>`
     : "<p>No published issue yet.</p>";
 }
+
+// ---- Price board: top 7 coins, live from the CoinGecko free API (no key),
+// refreshed every 5 minutes. If the feed fails, show the last dated
+// snapshot so the board is never empty — labelled as a snapshot, never
+// presented as live.
+const PRICE_IDS = ["bitcoin","ethereum","tether","binancecoin","usd-coin","ripple","solana"];
+const PRICE_ICONS = { bitcoin:["₿","#F7931A"], ethereum:["Ξ","#627EEA"], tether:["₮","#26A17B"], binancecoin:["B","#C9A227"], "usd-coin":["$","#2775CA"], ripple:["✕","#23292F"], solana:["◎","#111827"] };
+const PRICE_SNAPSHOT = [
+  { id:"bitcoin", name:"Bitcoin", symbol:"BTC", price:61790.47, change:1.92, mcap:"$1.24T", vol:"$24.81B" },
+  { id:"ethereum", name:"Ethereum", symbol:"ETH", price:1758.65, change:2.74, mcap:"$214.99B", vol:"$8.91B" },
+  { id:"tether", name:"Tether", symbol:"USDT", price:1.0, change:0.02, mcap:"$174.84B", vol:"$44.02B" },
+  { id:"binancecoin", name:"BNB", symbol:"BNB", price:564.09, change:1.21, mcap:"$74.18B", vol:"$553.6M" },
+  { id:"usd-coin", name:"USD Coin", symbol:"USDC", price:1.0, change:0.03, mcap:"$68.99B", vol:"$16.32B" },
+  { id:"ripple", name:"XRP", symbol:"XRP", price:0.968, change:4.51, mcap:"$61.48B", vol:"$1.58B" },
+  { id:"solana", name:"Solana", symbol:"SOL", price:74.06, change:5.46, mcap:"$43.84B", vol:"$2.25B" },
+];
+const PRICE_SNAPSHOT_LABEL = "Snapshot: Nov 23, 2026 · 12:29 PM EST";
+function priceSignal(r, isTop){
+  const sym = (r.symbol||"").toUpperCase();
+  if (sym === "USDT" || sym === "USDC") return ["Stable", "pill-grey"];
+  if (isTop && r.change > 0) return ["Top gainer", "pill-green"];
+  if (r.change >= 4) return ["Strong day", "pill-green"];
+  if (r.change > 0) return ["Rebound", "pill-green"];
+  if (r.change < 0) return ["Down", "pill-red"];
+  return ["Steady", "pill-grey"];
+}
+function renderPrices(rows, statusText){
+  const body = $("#price-board-body"); if (!body) return;
+  const top = rows.reduce((m,r)=> (r.change > m.change ? r : m), rows[0]);
+  body.innerHTML = rows.map((r,i) => {
+    const icon = PRICE_ICONS[r.id] || ["●","#0d9488"];
+    const [signal, cls] = priceSignal(r, r === top);
+    const price = r.price >= 100 ? "$" + r.price.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2}) : "$" + r.price.toFixed(4);
+    return `<tr><td><div class="coin"><span class="coin-icon" style="background:${icon[1]}">${icon[0]}</span><span>${esc(r.name)}<small>${esc(r.symbol)} · #${i+1}</small></span></div></td><td class="mono" style="font-weight:700">${price}</td><td class="${r.change>=0?"up":"down"}">${r.change>=0?"▲":"▼"} ${r.change>=0?"+":""}${r.change.toFixed(2)}%</td><td>${esc(r.mcap)}</td><td>${esc(r.vol)}</td><td><span class="pill ${cls}">${signal}</span></td></tr>`;
+  }).join("");
+  const st = $("#price-status"); if (st) st.textContent = statusText;
+}
+async function loadPrices(){
+  try {
+    const r = await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=" + PRICE_IDS.join(",") + "&order=market_cap_desc&per_page=7&page=1&price_change_percentage=24h");
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json();
+    if (!Array.isArray(j) || j.length < 3) throw new Error("bad payload");
+    const rows = j.map(c => ({ id: c.id, name: c.name, symbol: (c.symbol||"").toUpperCase(), price: c.current_price, change: c.price_change_percentage_24h || 0, mcap: "$" + (c.market_cap/1e9).toFixed(2) + "B", vol: "$" + (c.total_volume/1e9).toFixed(2) + "B" }));
+    renderPrices(rows, "Live · updated " + new Date().toLocaleTimeString("en-CA",{hour:"2-digit",minute:"2-digit"}));
+  } catch(e){
+    renderPrices(PRICE_SNAPSHOT, PRICE_SNAPSHOT_LABEL + " — live feed unavailable, showing last snapshot.");
+  }
+}
+loadPrices();
+setInterval(loadPrices, 300000);
 
 // Sticky mobile signup — jumps to the signup card on the home view.
 const stickyBtn = $("#sticky-cta-btn");
@@ -130,6 +196,23 @@ $("#signup-form").addEventListener("submit", async (e) => {
   const j = await r.json();
   $("#signup-msg").textContent = j.ok ? `You're in — free month started. Check ${email} for the welcome email.` : (j.error || "Signup failed.");
   $("#signup-msg").className = j.ok ? "ok" : "err";
+});
+// Sidebar mini signup — same /api/subscribe flow as the hero form.
+const miniForm = $("#mini-signup-form");
+if (miniForm) miniForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = $("#mini-email").value.trim();
+  const r = await fetch("/api/subscribe", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({ email }) });
+  const j = await r.json();
+  $("#mini-signup-msg").textContent = j.ok ? `You're in — free month started. Check ${email} for the welcome email.` : (j.error || "Signup failed.");
+  $("#mini-signup-msg").className = j.ok ? "ok" : "err";
+});
+// Board view subscribe prompt — back to the home signup card.
+const boardSub = $("#board-subscribe-btn");
+if (boardSub) boardSub.addEventListener("click", (e) => {
+  e.preventDefault(); show("home");
+  const card = $("#signup-card"); if (card) card.scrollIntoView({ behavior:"smooth", block:"start" });
+  const em = $("#email"); if (em) em.focus({ preventScroll:true });
 });
 $("#pay-submit").addEventListener("click", async () => {
   const body = { email: $("#pay-email").value.trim(), network: $("#pay-network").value, txid: $("#pay-txid").value.trim(), amount_usdt: 10 };
