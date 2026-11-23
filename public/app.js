@@ -34,6 +34,9 @@ function show(view){
   if (view === "manage" && adminSession) loadAdmin();
 }
 $$(".nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
+// Hidden owner route: /manage opens the Manage view. There is no public
+// link to it anywhere on the site — only someone who knows the URL gets here.
+if (window.location.pathname.replace(/\/+$/, "") === "/manage") show("manage");
 
 async function loadBoard(){
   try {

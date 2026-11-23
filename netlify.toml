@@ -9,6 +9,17 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Hidden owner route: /manage serves the single-page app, which opens the
+# Manage view. No public link points here.
+[[redirects]]
+  from = "/manage"
+  to = "/index.html"
+  status = 200
+[[redirects]]
+  from = "/manage/*"
+  to = "/index.html"
+  status = 200
+
 # /api/* rewrites: the front-end and the weekly job keep calling the same
 # /api/* URLs as before; Netlify rewrites each one (200, invisible to the
 # browser) to its function. Query strings pass through, so PATCH
