@@ -26,9 +26,40 @@
       <p>One weekly digest with the deadlines, eligibility rules and step-by-step
       claim instructions — and nothing you have to hand over to use it. We never
       ask for your wallet address, seed phrase or private key.</p>
-      <div class="card" id="countdown-card"><strong id="countdown">Loading next deadline…</strong><div class="muted small" id="countdown-sub"></div></div>
+      <div class="card" id="countdown-card"><strong id="countdown">Treehouse closes in 2d — Nov 25, 07:00 UTC</strong><div class="muted small" id="countdown-sub">Next closing drop. All deadlines are UTC.</div></div>
     </div>
-    <div class="card">
+    <div class="proofbar" id="proofbar">7 airdrops tracked this week · 2 deadlines in the next 7 days · Last checked: Nov 22, 2026</div>
+    <section id="top-drops" aria-label="Closing soon">
+      <h2>Closing soon — verified on the official pages</h2>
+      <div class="grid">
+        <div class="card drop-card">
+          <span class="badge hot"><span class="dot green"></span>Confirmed · <span class="mono" data-deadline="2026-11-25T07:00:00Z">2d left</span></span>
+          <h3>Treehouse (TREE)</h3>
+          <p class="muted small">Ethereum · Difficulty: Easy · Claim — gas only, no new capital · Est. ≈ 5 min</p>
+          <p>Closes <strong class="mono">Nov 25, 07:00 UTC</strong> · Trust score <span class="trust small-trust">92/100</span></p>
+          <p class="small">Season 2 claim for “Final Nuts” holders, governance voters and Squirrel Council NFT holders. Unclaimed TREE returns to the treasury.</p>
+          <p class="small"><a href="https://www.treehouse.finance/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
+        </div>
+        <div class="card drop-card">
+          <span class="badge hot"><span class="dot green"></span>Confirmed · <span class="mono" data-deadline="2026-11-28T12:00:00Z">5d left</span></span>
+          <h3>Doppler Finance (XDP)</h3>
+          <p class="muted small">Base / XRP Ledger · Difficulty: Easy · Claim — gas only, no new capital · Est. ≈ 5 min</p>
+          <p>Closes <strong class="mono">Nov 28, 12:00 UTC</strong> · Trust score <span class="trust small-trust">90/100</span></p>
+          <p class="small">Genesis airdrop claim. Only for Base addresses registered by July 30, 2026 — registration is closed, so this cannot be farmed now.</p>
+          <p class="small"><a href="https://www.doppler.finance/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
+        </div>
+        <div class="card drop-card">
+          <span class="badge soon"><span class="dot green"></span>Confirmed · <span class="mono" data-deadline="2026-12-04T12:00:00Z">11d left</span></span>
+          <h3>Aster (ASTER)</h3>
+          <p class="muted small">BNB Chain · Difficulty: Medium · Claim — gas only, no new capital · Est. ≈ 10 min</p>
+          <p>Closes <strong class="mono">Dec 4, 12:00 UTC</strong> · Trust score <span class="trust small-trust">88/100</span></p>
+          <p class="small">Stage 6 “Convergence” — only for participants who chose the full-allocation option back in April. 64M ASTER in this stage.</p>
+          <p class="small"><a href="https://www.asterdex.com/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
+        </div>
+      </div>
+      <p><button class="btn ghost" data-view-link="board">See the full board — 7 live drops</button></p>
+    </section>
+    <div class="card" id="signup-card">
       <h2>Start free for a month</h2>
       <p class="muted">Email only. After the free month, $5/week in USDT to keep receiving it.</p>
       <form id="signup-form"><label for="email">Email address</label>
@@ -37,6 +68,30 @@
         <p class="small muted">No wallet address. No card. Unsubscribe any time.</p>
         <p id="signup-msg" role="status"></p>
       </form>
+      <p><a class="btn ghost" id="telegram-btn" href="#" data-telegram-placeholder="true">Free alerts on Telegram ↗</a></p>
+      <p class="small muted" id="telegram-note">Telegram channel link being added — check back soon.</p>
+    </div>
+    <div class="card verify-strip"><h2>How we verify</h2>
+      <p>Every deadline is checked against the project’s <strong>official page</strong> — never a DM, never a repost. Last checked: <strong>Nov 22, 2026</strong>.</p>
+      <p class="small"><a href="https://www.treehouse.finance/" target="_blank" rel="noopener">Treehouse ↗</a> · <a href="https://www.doppler.finance/" target="_blank" rel="noopener">Doppler Finance ↗</a> · <a href="https://www.asterdex.com/" target="_blank" rel="noopener">Aster ↗</a> · <a href="https://midnight.gd/" target="_blank" rel="noopener">Midnight ↗</a> · <a href="https://predict.fun/" target="_blank" rel="noopener">Predict.fun ↗</a> · <a href="https://standx.com/" target="_blank" rel="noopener">StandX ↗</a> · <a href="https://www.grass.io/" target="_blank" rel="noopener">Grass ↗</a></p>
+      <p class="small"><strong>Scam alert:</strong> two of the most-shared “airdrops” right now are not real — Hyperliquid “Season 2” and a MetaMask “MASK” token. Any claim link for them is a scam. A real deadline is on the official page, not in a DM.</p>
+    </div>
+    <div class="card" id="sample-card"><h2>See Issue #1 — before you sign up</h2>
+      <p class="muted">This is the real email members got. One full entry, the rest blurred — <a href="https://airdroplookout.com/issues/issue-1.pdf" target="_blank" rel="noopener">read the full Issue #1 (PDF)</a>.</p>
+      <div class="sample-entry">
+        <h3>Treehouse (TREE) — Ethereum · closes Nov 25, 07:00 UTC</h3>
+        <p><strong>Who qualifies:</strong> any ONE of — held at least 500 “Final Nuts” at the Apr 25, 2026 snapshot; cast at least one vote in a Season 2 governance poll; hold a Treehouse Squirrel Council NFT. Wallets flagged in the Sybil check receive less or nothing.</p>
+        <ol class="steps"><li>Open the Season 2 claim on the portal linked from Treehouse’s own site and docs.</li><li>Connect the same wallet you used in the campaign.</li><li>Claim once — anything unclaimed after Nov 25, 07:00 UTC returns to the treasury.</li></ol>
+        <p class="small"><a href="https://www.treehouse.finance/" target="_blank" rel="noopener">Official project page ↗</a> — Verified Nov 22, 2026</p>
+      </div>
+      <div class="sample-blur" aria-hidden="true">
+        <h3>Doppler Finance (XDP) — Base / XRP Ledger · closes Nov 28, 12:00 UTC</h3>
+        <p>Genesis airdrop claim. Only for Base addresses registered by July 30, 2026 — registration is closed, so this cannot be farmed now.</p>
+        <h3>Aster (ASTER) — BNB Chain · closes Dec 4, 12:00 UTC</h3>
+        <p>Stage 6 “Convergence” — only for participants who chose the full-allocation option back in April. 64M ASTER in this stage.</p>
+        <p>Plus Midnight, Predict.fun, StandX and Grass — Stage 2, and the week’s scam alerts.</p>
+      </div>
+      <p><a class="btn" href="https://airdroplookout.com/issues/issue-1.pdf" target="_blank" rel="noopener">Read the full Issue #1 (PDF)</a></p>
     </div>
     <div class="card"><h2>How it works</h2>
       <ol><li><strong>Sign up with email only.</strong></li>
@@ -44,12 +99,12 @@
       <li><strong>You get the issue by email</strong> — deadlines in date order, eligibility, and tick-off steps. You check your own wallet yourself.</li></ol>
       <p class="muted small">This is information, not financial advice. Rewards are never guaranteed. Always re-check the official project page before connecting a wallet.</p>
     </div>
-    <div class="card" id="missed-card"><h2>What you missed / What members got</h2><div id="missed">Loading…</div></div>
+    <div class="card" id="missed-card"><h2>What you missed / What members got</h2><div id="missed"><p><strong>Issue 1 — The deadline issue</strong> — Week 1 · Sunday, November 22, 2026</p><p>Three claim windows close in the next six days, and two of the most-shared “airdrops” online right now are not real. Work down the deadline board in date order. Every deadline is UTC. This is information, not financial advice. Rewards are never guaranteed.</p><p class="muted small">Members got the full deadline board, eligibility and steps. Non-members missed it.</p></div></div>
   </section>
   <section data-page="board" class="hidden">
     <h1>Airdrop board</h1>
     <p class="muted">Live airdrops, in deadline order. <span id="board-count"></span></p>
-    <div class="tabs"><button data-filter="all" class="active">All</button><button data-filter="closing">Closing soon</button><button data-filter="latest">Latest</button></div>
+    <div class="tabs"><button data-filter="all" class="active">All</button><button data-filter="confirmed">Confirmed</button><button data-filter="testnet">Testnet (free)</button><button data-filter="mainnet">Mainnet</button><button data-filter="ending">Ending soon</button></div>
     <label for="board-search">Search</label><input id="board-search" placeholder="Search by name, token or chain…">
     <div class="grid" id="board"></div>
   </section>
@@ -71,7 +126,25 @@
     <h1>Pricing</h1>
     <div class="grid">
       <div class="card"><h2>Free first month</h2><p class="trust">$0</p><p>Every weekly issue, the live board, and the safety section. Email only.</p></div>
-      <div class="card"><h2>After the free month</h2><p class="trust">$5 / week</p><p>In USDT only. No card, no Stripe. You pay to the wallet address shown in Manage → Settings, email the transaction ID, and Adil marks you paid.</p><p class="muted small" id="pay-address">Wallet address: to be added by the owner.</p><p><img src="/usdt-qr.png" alt="Scan to pay USDT (TRC20)" style="max-width:180px;width:100%;height:auto"></p><p class="muted small">Scan the QR code to pay in USDT on TRC20 — or copy the address above.</p></div>
+      <div class="card"><h2>After the free month</h2><p class="trust">$5 / week</p><p><span class="badge safe">No wallet. No seed phrase. Ever.</span></p><p>In USDT only. No card, no Stripe. You pay to the wallet address shown in Manage → Settings, email the transaction ID, and Adil marks you paid.</p><p class="muted small" id="pay-address">Wallet address (TRC20): TS5zyeDzJw9tjA56QtA8PFBEpLX4ywDQc2</p><p><img src="/usdt-qr.png" alt="Scan to pay USDT (TRC20)" style="max-width:180px;width:100%;height:auto"></p><p class="muted small">Scan the QR code to pay in USDT on TRC20 — or copy the address above.</p></div>
+    </div>
+    <div class="card"><h2>How $5/week in USDT works — 3 steps</h2>
+      <ol class="steps"><li><strong>Step 1 — Pay on TRC20.</strong> Send $5 per week in USDT on the TRC20 network. One network, one currency — no cards, no banks.</li>
+      <li><strong>Step 2 — Send it to this address.</strong> <span class="mono">TS5zyeDzJw9tjA56QtA8PFBEpLX4ywDQc2</span> — scan the QR code above or copy the address. Only ever send to this public address; never share a seed phrase or private key with anyone.</li>
+      <li><strong>Step 3 — Paid issues start after your free month.</strong> Paste your transaction ID below and submit it. Adil verifies it and marks you paid — your weekly issues keep coming once the free month ends.</li></ol>
+    </div>
+    <div class="card"><h2>Free vs. paid</h2>
+      <div class="grid compare">
+        <div><h3>Free — first month · $0</h3><ul class="steps"><li>Every weekly issue for 30 days</li><li>Live airdrop board with deadlines</li><li>Safety section and scam alerts</li><li>Email only — no card, no wallet</li></ul></div>
+        <div><h3>Paid — after the free month · $5/week in USDT</h3><ul class="steps"><li>Weekly issues keep coming, every week</li><li>Live airdrop board with deadlines</li><li>Safety section and scam alerts</li><li>Pay in USDT (TRC20) — cancel any time by unsubscribing</li></ul></div>
+      </div>
+    </div>
+    <div class="card"><h2>Frequently asked questions</h2>
+      <details><summary>Is this financial advice?</summary><p>No. Airdrop Lookout is information, not financial advice. We list deadlines, eligibility rules and steps from official project pages. Always do your own research and re-check the official page before connecting a wallet.</p></details>
+      <details><summary>Can rewards be guaranteed?</summary><p>No — rewards can never be guaranteed. They depend on the project, your eligibility, and claiming before the deadline. Some allocations expire unclaimed, and project terms change without notice.</p></details>
+      <details><summary>How do I unsubscribe?</summary><p>Click the unsubscribe link in any issue email. You can also ask in Manage — every email carries the link, and unsubscribing stops all future issues.</p></details>
+      <details><summary>Why USDT only?</summary><p>To keep payments simple and borderless: one currency, no cards, no banks, no exchange-rate surprises. Anyone, anywhere, can pay $5/week in USDT on TRC20.</p></details>
+      <details><summary>How do you check deadlines?</summary><p>Every deadline is checked against the project’s official page — never a DM, never a repost — and re-checked each week. Each drop on the board links to its official source, with the date it was last verified.</p></details>
     </div>
     <div class="card"><h2>Pay with USDT</h2>
       <label for="pay-email">Your email (the one you signed up with)</label><input id="pay-email" type="email">
@@ -125,6 +198,7 @@
   </section>
 </main>
 <footer><div class="wrap">Airdrop Lookout · <span id="foot-domain">airdroplookout.com</span> · $5/week in USDT after a free first month · We never ask for your wallet address · Not financial advice.</div></footer>
+<div id="sticky-cta"><a href="#" id="sticky-cta-btn" class="btn">Start free for a month</a></div>
 <script src="/app.js"></script>
 </body>
 </html>

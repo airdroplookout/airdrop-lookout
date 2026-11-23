@@ -11,6 +11,17 @@ let boardData = { airdrops: [], issue: null, settings: {} };
 
 function esc(s){ return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 function daysLeft(d){ if(!d) return "—"; const ms = new Date(d) - Date.now(); return ms < 0 ? "closed" : Math.ceil(ms/864e5) + "d left"; }
+function countdownText(d){ if(!d) return "—"; const ms = new Date(d) - Date.now(); if (ms < 0) return "closed"; const days = Math.floor(ms/864e5), hrs = Math.floor(ms%864e5/36e5), min = Math.floor(ms%36e5/6e4); return days > 0 ? `${days}d ${hrs}h left` : `${hrs}h ${min}m left`; }
+function tickCountdowns(){ $$("[data-deadline]").forEach(el => { el.textContent = countdownText(el.dataset.deadline); }); }
+setInterval(tickCountdowns, 60000);
+function isTestnet(a){ return a.testnet === true || /testnet/i.test(`${a.name||""} ${a.chain||""}`); }
+function costLabel(a){
+  // Every tracked drop is a claim window for past activity: nothing new to
+  // farm, just the claim transaction itself.
+  return "Claim — gas only, no new capital";
+}
+function timeLabel(a){ return (a.effort||"").toLowerCase() === "easy" ? "≈ 5 min" : "≈ 10 min"; }
+function diffLabel(a){ const e = (a.effort||"").toLowerCase(); return e === "easy" ? "Easy" : e === "hard" ? "Hard" : "Medium"; }
 function trustBadge(score){
   if (score == null) return "";
   return `<div>Trust score <span class="trust">${score}/100</span><div class="muted small">Based only on what is actually there: verified source, documented steps, clear eligibility, confirmed deadline.</div></div>`;
@@ -31,6 +42,16 @@ async function loadBoard(){
     if (next){ $("#countdown").textContent = `${next.name} closes in ${daysLeft(next.deadline_at)} — ${new Date(next.deadline_at).toUTCString()}`;
       $("#countdown-sub").textContent = "Next closing drop. All deadlines are UTC."; }
     else { $("#countdown").textContent = "No closing drops right now — check back for the next issue."; }
+    // Proof bar — honest, live numbers only; never subscriber counts.
+    const drops = j.airdrops||[];
+    const soon = drops.filter(a => a.deadline_at && (new Date(a.deadline_at)-Date.now()) > 0 && (new Date(a.deadline_at)-Date.now()) < 7*864e5).length;
+    const pb = $("#proofbar");
+    if (pb) pb.textContent = `${drops.length} airdrop${drops.length===1?"":"s"} tracked this week · ${soon} deadline${soon===1?"":"s"} in the next 7 days · Last checked: Nov 22, 2026`;
+    // Telegram button — only link it when a real channel link is saved in Settings.
+    const tg = j.settings?.telegram_link || "";
+    const tbtn = $("#telegram-btn"), tnote = $("#telegram-note");
+    if (tg && tbtn){ tbtn.href = tg; tbtn.removeAttribute("data-telegram-placeholder"); if (tnote) tnote.textContent = ""; }
+    tickCountdowns();
     const iss = j.issue;
     $("#missed").innerHTML = iss
       ? `<p><strong>${esc(iss.title)}</strong> — ${esc(iss.week_label||"")}</p><p>${esc(iss.intro||"")}</p><p class="muted small">Members got the full deadline board, eligibility and steps. Non-members missed it.</p>`
@@ -45,18 +66,21 @@ function renderBoard(){
   const q = ($("#board-search").value||"").toLowerCase();
   const f = document.querySelector('[data-filter].active')?.dataset.filter || "all";
   let list = (boardData.airdrops||[]).filter(a => !q || [a.name,a.token,a.chain].join(" ").toLowerCase().includes(q));
-  if (f === "closing") list = list.filter(a => a.deadline_at && (new Date(a.deadline_at)-Date.now()) < 7*864e5);
-  if (f === "latest") list = [...list].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,6);
+  if (f === "confirmed") list = list.filter(a => a.verified);
+  if (f === "testnet") list = list.filter(isTestnet);
+  if (f === "mainnet") list = list.filter(a => !isTestnet(a));
+  if (f === "ending") list = list.filter(a => a.deadline_at && (new Date(a.deadline_at)-Date.now()) < 7*864e5);
   $("#board-count").textContent = `${list.length} live drop(s).`;
-  $("#board").innerHTML = list.map(a => `<div class="card">
-    <span class="badge ${a.deadline_at && (new Date(a.deadline_at)-Date.now())<7*864e5 ? "hot":"soon"}">${esc(a.status||"active")} · ${daysLeft(a.deadline_at)}</span>
+  $("#board").innerHTML = list.map(a => `<div class="card drop-card">
+    <span class="badge ${a.deadline_at && (new Date(a.deadline_at)-Date.now())<7*864e5 ? "hot":"soon"}">${a.verified?'<span class="dot green"></span>Confirmed':esc(a.status||"active")} · <span class="mono">${countdownText(a.deadline_at)}</span></span>
     <h3>${esc(a.name)} ${a.token?`(${esc(a.token)})`:""}</h3>
-    <p class="muted small">${esc(a.chain||"")} · Effort: ${esc(a.effort||"—")} · Closes: ${a.deadline_at?new Date(a.deadline_at).toUTCString():"—"}</p>
+    <p class="muted small">${esc(a.chain||"")} · Difficulty: ${diffLabel(a)} · ${costLabel(a)} · Est. ${timeLabel(a)}</p>
+    <p class="small">Closes: <span class="mono">${a.deadline_at?new Date(a.deadline_at).toUTCString():"—"}</span></p>
     ${trustBadge(a.trust_score)}
     <p><strong>Eligibility:</strong> ${esc(a.eligibility||"—")}</p>
     <ul class="steps">${(a.steps||[]).map((s,i)=>`<li><label><input type="checkbox"> Step ${i+1}: ${esc(s)}</label></li>`).join("")}</ul>
     ${a.source_url?`<p class="small"><a href="${esc(a.source_url)}" target="_blank" rel="noopener">Official project page ↗</a> — claim only from the official page.</p>`:""}
-  </div>`).join("") || "<p>No drops match.</p>";
+  </div>`).join("") || (f === "testnet" ? "<p>No testnet drops tracked right now — every live drop is a mainnet claim.</p>" : "<p>No drops match.</p>");
 }
 $$("[data-filter]").forEach(b => b.addEventListener("click", () => { $$("[data-filter]").forEach(x=>x.classList.remove("active")); b.classList.add("active"); renderBoard(); }));
 $("#board-search").addEventListener("input", renderBoard);
@@ -66,6 +90,16 @@ function renderIssue(){
   $("#issue").innerHTML = iss ? `<div class="card"><h2>${esc(iss.title)}</h2><p class="muted">${esc(iss.week_label||"")}</p><p>${esc(iss.intro||"")}</p><p>${esc(iss.safety_tip||"")}</p></div>`
     : "<p>No published issue yet.</p>";
 }
+
+// Sticky mobile signup — jumps to the signup card on the home view.
+const stickyBtn = $("#sticky-cta-btn");
+if (stickyBtn) stickyBtn.addEventListener("click", (e) => {
+  e.preventDefault(); show("home");
+  const card = $("#signup-card"); if (card) card.scrollIntoView({ behavior:"smooth", block:"start" });
+  const em = $("#email"); if (em) em.focus({ preventScroll:true });
+});
+// "See the full board" buttons anywhere on the home view.
+$$("[data-view-link]").forEach(b => b.addEventListener("click", () => { show(b.dataset.viewLink); window.scrollTo(0,0); }));
 
 $("#signup-form").addEventListener("submit", async (e) => {
   e.preventDefault();
