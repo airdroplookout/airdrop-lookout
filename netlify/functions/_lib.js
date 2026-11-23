@@ -144,6 +144,7 @@ export function emailHtml({ title, intro, safety_tip, drops, siteUrl, unsubscrib
     <ol>${(d.steps || []).map(s => `<li>${s}</li>`).join("")}</ol>
     ${d.source_url ? `<p>Official page: <a href="${d.source_url}">${d.source_url}</a></p>` : ""}`).join("");
   return `<!doctype html><html><body style="font-family:system-ui,Arial,sans-serif;max-width:640px;margin:0 auto;padding:16px">
+<p style="text-align:center;margin:0 0 8px"><img src="${siteUrl}/logo.png" alt="Airdrop Lookout" style="max-width:320px;width:100%;height:auto"></p>
 <h1>Airdrop Lookout — ${title}</h1>
 <p>${intro || ""}</p>
 ${pdfUrl ? `<p><a href="${pdfUrl}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Read this issue as a PDF</a></p>
