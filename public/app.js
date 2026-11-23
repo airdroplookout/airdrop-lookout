@@ -360,4 +360,11 @@ $("#save-settings").addEventListener("click", async () => {
     })
     .catch(() => { banner.textContent = "Could not unsubscribe — please try again from the latest issue email."; banner.className = "err"; });
 })();
+// Tip jar — copy the USDT address to the clipboard.
+const tipBtn = $("#tip-copy");
+if (tipBtn) tipBtn.addEventListener("click", async () => {
+  const addr = $("#tip-address")?.textContent?.trim() || "";
+  try { await navigator.clipboard.writeText(addr); $("#tip-msg").textContent = "Copied."; }
+  catch { $("#tip-msg").textContent = "Copy didn't work — long-press the address to copy it."; }
+});
 loadBoard();
