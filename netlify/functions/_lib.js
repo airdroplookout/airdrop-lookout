@@ -1,8 +1,51 @@
-// Shared helpers for Cloudflare Pages Functions.
-// Server-side only. Secrets come from env (Cloudflare Pages Variables), never from the browser.
+// Shared helpers for Netlify Functions.
+// Converted from Cloudflare Pages Functions (Nov 2026) — same logic, same
+// Supabase / Brevo calls, same env-var names. Server-side only. Secrets come
+// from process.env (Netlify Site settings -> Environment variables), never
+// from the browser.
+//
+// Netlify classic handler shape: each endpoint file exports
+//   export const handler = handlerFor({ GET: ..., POST: ..., ... })
+// handlerFor builds a Cloudflare-style `context` ({ request, env, params })
+// from the Netlify `event`, calls the method handler, and converts the
+// returned Response into Netlify's { statusCode, headers, body } shape.
 export function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { "content-type": "application/json" } });
 }
+
+function buildContext(event, getParams) {
+  const query = event.queryStringParameters || {};
+  const qs = new URLSearchParams(query).toString();
+  const path = event.path || "/";
+  const url = `https://${(event.headers && (event.headers.host || event.headers.Host)) || "localhost"}${path}${qs ? `?${qs}` : ""}`;
+  const headers = new Headers(event.headers || {});
+  const method = event.httpMethod || "GET";
+  let body;
+  if (event.body && method !== "GET" && method !== "HEAD") {
+    body = event.isBase64Encoded ? Buffer.from(event.body, "base64") : event.body;
+  }
+  const request = new Request(url, { method, headers, body });
+  return { request, env: process.env, params: getParams ? getParams(event, query) : {} };
+}
+
+export function handlerFor(methods, getParams) {
+  return async (event) => {
+    const fn = methods[event.httpMethod];
+    if (!fn) {
+      return { statusCode: 405, headers: { "content-type": "application/json" }, body: JSON.stringify({ ok: false, error: "Method not allowed" }) };
+    }
+    try {
+      const res = await fn(buildContext(event, getParams));
+      const text = await res.text();
+      const headers = {};
+      res.headers.forEach((v, k) => { headers[k] = v; });
+      return { statusCode: res.status, headers, body: text };
+    } catch (e) {
+      return { statusCode: 500, headers: { "content-type": "application/json" }, body: JSON.stringify({ ok: false, error: String(e.message || e) }) };
+    }
+  };
+}
+
 export function isAdmin(context) {
   const req = context.request;
   const key = req.headers.get("x-admin-key") || (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");

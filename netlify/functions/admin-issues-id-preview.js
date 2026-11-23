@@ -1,7 +1,10 @@
-import { json, sbJson, requireAdmin } from "../../../_lib.js";
+// Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
+// Original: functions/api/admin/issues/[id]/preview.js. Route is rewritten to this function in netlify.toml;
+// the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
+import { json, sbJson, requireAdmin, handlerFor } from "./_lib.js";
 // GET /api/admin/issues/:id/preview — build the EXACT email (subject + body)
 // and count recipients. No email is sent. Owner only.
-export async function onRequestGet(context) {
+async function onGet(context) {
   const denied = requireAdmin(context); if (denied) return denied;
   try {
     const id = context.params.id;
@@ -23,3 +26,6 @@ export async function onRequestGet(context) {
     return json({ ok: true, subject: `Airdrop Lookout — ${issue.title}`, recipient_count: subs.length, body, drops: drops.map(d=>d.name) });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }
+
+export const handler = handlerFor({ GET: onGet },
+  (event, q) => ({ id: q.id || event.path.split("/").filter(Boolean).at(-2) }));

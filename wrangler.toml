@@ -1,7 +1,0 @@
-name = "airdrop-lookout"
-compatibility_date = "2026-11-22"
-pages_build_output_dir = "public"
-# No build step: static front-end in public/, server code in functions/.
-# Variables (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, BREVO_API_KEY,
-# BREVO_SENDER_EMAIL, ADMIN_API_KEY, SITE_DOMAIN, SITE_URL) are set in
-# Cloudflare Pages → Settings → Variables, never in this file.

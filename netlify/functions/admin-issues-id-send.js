@@ -1,10 +1,13 @@
-import { json, sbJson, requireAdmin, sendViaBrevo, emailHtml } from "../../../../_lib.js";
+// Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
+// Original: functions/api/admin/issues/[id]/send.js. Route is rewritten to this function in netlify.toml;
+// the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
+import { json, sbJson, requireAdmin, sendViaBrevo, emailHtml, handlerFor } from "./_lib.js";
 // POST /api/admin/issues/:id/send — send a PUBLISHED issue to every active subscriber,
 // one individual email each via Brevo, with unsubscribe footer.
 // Owner only (ADMIN_API_KEY). Records send_count / send_failed / last_send_at.
 // Safety: refuses to send a draft. Refuses if there are 0 recipients.
 // Body (optional): { test_email } — send to ONE test address only, for TEST_PLAN.md step 3.
-export async function onRequestPost(context) {
+async function onPost(context) {
   const denied = requireAdmin(context); if (denied) return denied;
   try {
     const id = context.params.id;
@@ -34,3 +37,6 @@ export async function onRequestPost(context) {
     return json({ ok: true, sent, failed, failures: failures.slice(0, 10), test: Boolean(body.test_email) });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }
+
+export const handler = handlerFor({ POST: onPost },
+  (event, q) => ({ id: q.id || event.path.split("/").filter(Boolean).at(-2) }));

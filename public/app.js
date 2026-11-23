@@ -1,4 +1,4 @@
-// Airdrop Lookout — front-end. Calls /api/* (Cloudflare Pages Functions).
+// Airdrop Lookout — front-end. Calls /api/* (Netlify Functions, rewritten in netlify.toml).
 // Domain comes from public/config.js — ONE place to change it.
 const CFG = window.AIRDROP_LOOKOUT_CONFIG || { SITE_DOMAIN: "airdroplookout.com", SITE_URL: "https://airdroplookout.com" };
 const $ = (s) => document.querySelector(s);

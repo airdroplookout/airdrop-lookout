@@ -1,6 +1,9 @@
-import { json, sbJson, requireAdmin, trustScore } from "../../_lib.js";
+// Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
+// Original: functions/api/admin/overview.js. Route is rewritten to this function in netlify.toml;
+// the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
+import { json, sbJson, requireAdmin, trustScore, handlerFor } from "./_lib.js";
 // GET /api/admin/overview — everything Manage needs in one call. Owner only.
-export async function onRequestGet(context) {
+async function onGet(context) {
   const denied = requireAdmin(context); if (denied) return denied;
   try {
     const [subscribers, issues, airdrops, payments, settingsRows] = await Promise.all([
@@ -18,3 +21,5 @@ export async function onRequestGet(context) {
       last_send: last ? `${last.title} — ${last.last_send_at} (${last.send_count} sent, ${last.send_failed} failed)` : null });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }
+
+export const handler = handlerFor({ GET: onGet });

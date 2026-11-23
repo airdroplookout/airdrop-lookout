@@ -1,9 +1,12 @@
-import { json, sbJson, requireAdmin, trustScore } from "../../_lib.js";
+// Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
+// Original: functions/api/admin/issues.js. Route is rewritten to this function in netlify.toml;
+// the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
+import { json, sbJson, requireAdmin, trustScore, handlerFor } from "./_lib.js";
 // POST /api/admin/issues — create a draft issue.
 // Body: { title, week_label, intro, safety_tip, airdrop_ids?: [uuid...] }
 // This is the endpoint the Muse weekly job calls. It creates a DRAFT only —
 // publishing is a separate, explicit step (see [id]/publish.js).
-export async function onRequestPost(context) {
+async function onPost(context) {
   const denied = requireAdmin(context); if (denied) return denied;
   try {
     const b = await context.request.json();
@@ -19,3 +22,5 @@ export async function onRequestPost(context) {
     return json({ ok: true, issue });
   } catch (e) { return json({ ok: false, error: String(e.message || e) }, 500); }
 }
+
+export const handler = handlerFor({ POST: onPost });
