@@ -137,3 +137,15 @@ export async function sendViaResend(context, { to, subject, html, attachments })
   return r.json();
 }
 export function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim().toLowerCase()); }
+// Canonical public base URL for links readers see (PDF button, unsubscribe).
+// The Netlify SITE_URL env var still holds the pre-domain Netlify subdomain
+// (with a trailing slash, which produced "//issues/..." links); the site's
+// real domain is airdroplookout.com (see public/config.js). So: strip any
+// trailing slash, and if SITE_URL is still a *.netlify.app address, use the
+// canonical domain instead — both serve the same site. Once SITE_URL is
+// updated in Netlify to airdroplookout.com, that value is used as-is.
+export function siteBaseUrl(env) {
+  const raw = String((env && env.SITE_URL) || "https://airdroplookout.com").trim().replace(/\/+$/, "");
+  if (/\.netlify\.app$/i.test(raw)) return "https://airdroplookout.com";
+  return raw || "https://airdroplookout.com";
+}

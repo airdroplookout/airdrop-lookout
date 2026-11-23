@@ -1,7 +1,7 @@
 // Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
 // Original: functions/api/admin/issues/[id]/send.js. Route is rewritten to this function in netlify.toml;
 // the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
-import { json, sbJson, requireAdmin, sendViaResend, emailHtml, validEmail, handlerFor } from "./_lib.js";
+import { json, sbJson, requireAdmin, sendViaResend, emailHtml, validEmail, siteBaseUrl, handlerFor } from "./_lib.js";
 // POST /api/admin/issues/:id/send — send a PUBLISHED issue to every active subscriber,
 // one individual email each via the Resend Send Email API, with the issue
 // HTML in the body, a "Read this issue as a PDF" button linking to the PDF
@@ -27,7 +27,7 @@ async function onPost(context) {
     const links = await sbJson(context, `issue_airdrops?issue_id=eq.${id}&order=position.asc`);
     const drops = [];
     for (const l of links) { const d = await sbJson(context, `airdrops?id=eq.${l.airdrop_id}&limit=1`); if (d[0]) drops.push(d[0]); }
-    const siteUrl = context.env.SITE_URL || "https://airdroplookout.com";
+    const siteUrl = siteBaseUrl(context.env);
     // Issue N -> /issues/issue-N.pdf (Issue 1 -> issue-1.pdf, etc).
     const m = String(issue.title || "").match(/issue\s+(\d+)/i);
     const pdfFilename = m ? `issue-${m[1]}.pdf` : "issue-1.pdf";

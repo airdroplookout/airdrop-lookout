@@ -1,7 +1,7 @@
 // Netlify Function — converted from Cloudflare Pages Functions (Nov 2026).
 // Original: functions/api/admin/issues/[id]/preview.js. Route is rewritten to this function in netlify.toml;
 // the public /api/* URL is unchanged, so the front-end and weekly job need no changes.
-import { json, sbJson, requireAdmin, handlerFor } from "./_lib.js";
+import { json, sbJson, requireAdmin, siteBaseUrl, handlerFor } from "./_lib.js";
 // GET /api/admin/issues/:id/preview — build the EXACT email (subject + body)
 // and count recipients. No email is sent. Owner only.
 async function onGet(context) {
@@ -14,7 +14,7 @@ async function onGet(context) {
     const drops = [];
     for (const l of links) { const d = await sbJson(context, `airdrops?id=eq.${l.airdrop_id}&limit=1`); if (d[0]) drops.push(d[0]); }
     const subs = await sbJson(context, "subscribers?status=neq.unsubscribed&status=neq.archived&select=email");
-    const siteUrl = context.env.SITE_URL || "https://airdroplookout.com";
+    const siteUrl = siteBaseUrl(context.env);
     const m = String(issue.title || "").match(/issue\s+(\d+)/i);
     const pdfFilename = m ? `issue-${m[1]}.pdf` : "issue-1.pdf";
     const pdfUrl = `${siteUrl}/issues/${pdfFilename}`;
