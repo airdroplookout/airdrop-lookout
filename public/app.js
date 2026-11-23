@@ -98,6 +98,28 @@ if (stickyBtn) stickyBtn.addEventListener("click", (e) => {
   const card = $("#signup-card"); if (card) card.scrollIntoView({ behavior:"smooth", block:"start" });
   const em = $("#email"); if (em) em.focus({ preventScroll:true });
 });
+// Welcome popup — once per visitor, never inside the Manage area.
+(function welcomePopup(){
+  const KEY = "aw_welcome_seen";
+  let seen = false;
+  try { seen = localStorage.getItem(KEY) === "1"; } catch(e){}
+  const popup = $("#welcome-popup");
+  if (!popup || seen) return;
+  function dismiss(){ popup.classList.add("hidden"); try { localStorage.setItem(KEY, "1"); } catch(e){} }
+  popup.addEventListener("click", (e) => { if (e.target.closest("[data-popup-close]")) dismiss(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !popup.classList.contains("hidden")) dismiss(); });
+  const cta = $("#popup-signup-btn");
+  if (cta) cta.addEventListener("click", () => {
+    dismiss(); show("home");
+    const card = $("#signup-card"); if (card) card.scrollIntoView({ behavior:"smooth", block:"start" });
+    const em = $("#email"); if (em) em.focus({ preventScroll:true });
+  });
+  setTimeout(() => {
+    const manage = document.querySelector('[data-page="manage"]');
+    if (manage && !manage.classList.contains("hidden")) return; // never in Manage
+    popup.classList.remove("hidden");
+  }, 1000);
+})();
 // "See the full board" buttons anywhere on the home view.
 $$("[data-view-link]").forEach(b => b.addEventListener("click", () => { show(b.dataset.viewLink); window.scrollTo(0,0); }));
 
