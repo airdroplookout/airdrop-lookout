@@ -26,7 +26,12 @@ launch; watch it if traffic grows.
 3. **Netlify** — free account, for hosting. Adil creates it and signs in once;
    Dexter cannot create accounts in his name.
 4. **Supabase** — free account to start; upgrade to Pro ($25/month) before launch.
-5. **Brevo** — free account, for sending. Needs account approval before the first send.
+5. **Resend** — free account, for sending (3,000 emails/month, no street address needed).
+   Create a Sending API key and save it as `RESEND_API_KEY` in Netlify env vars, plus
+   `RESEND_SENDER_EMAIL` = `newsletter@airdroplookout.com`. The site sends via the Resend
+   Send Email API with the issue PDF attached — Broadcasts cannot attach files, so they
+   are not used for sending. (Brevo was abandoned Nov 23: it requires a postal address
+   printed on every email.)
 
 ## 1. Code → GitHub → Netlify
 
@@ -82,7 +87,16 @@ Adil asks for Netlify DNS).
 3. Netlify issues the HTTPS certificate automatically (Let's Encrypt). Wait
    for the domain status to show Active, then open `https://airdroplookout.com`.
 
-## 4. Sending — Brevo (SPF / DKIM / DMARC)
+## 4. Sending — Resend (API key + attachment)
+
+Sending now uses the Resend Send Email API (`POST https://api.resend.com/emails`)
+from `newsletter@airdroplookout.com`, one email per subscriber, HTML body + PDF button
+linking to `https://airdroplookout.com/issues/issue-N.pdf` + the PDF attached. Domain
+verification (DKIM/SPF/DMARC) was done in Resend + Wix DNS on Nov 23, 2026.
+
+~~The old Brevo setup below no longer applies — kept for reference only.~~
+
+## 4a. Sending — Brevo (SPF / DKIM / DMARC) — SUPERSEDED, do not use
 
 1. Brevo → Settings → Senders & IP → Domains → Add a domain → enter the domain.
 2. Brevo gives you DKIM TXT/CNAME records. Add them in **Porkbun DNS**
@@ -135,7 +149,7 @@ subscribers automatically, without Adil uploading anything or intervening.
 >    e. `GET /api/admin/issues/<id>/preview` — check the subject, body and
 >       recipient count; if anything looks wrong, STOP and report to Adil.
 >    f. `POST /api/admin/issues/<id>/send` — sends one individual email per
->       active subscriber via Brevo, with unsubscribe footer.
+>       active subscriber via Resend, with the PDF attached and unsubscribe footer.
 > 4. Report back to Adil in chat: issue title, how many drops, how many sent /
 >    failed. If no verified drops were found, or a deadline could not be
 >    verified, do NOT send — report that instead.
@@ -152,7 +166,8 @@ upload is only if the job ever fails.
 - [ ] Netlify site live on `*.netlify.app`, env vars set, redeploy done
 - [ ] Domain confirmed + bought, DNS active, HTTPS works
 - [ ] Supabase Pro active, schema + seed run, Issue 1 visible on the board
-- [ ] Brevo domain verified (SPF/DKIM/DMARC), test email lands in inbox, not spam
+- [ ] Resend domain verified (SPF/DKIM/DMARC), test email lands in inbox, not spam
+- [ ] RESEND_API_KEY + RESEND_SENDER_EMAIL set in Netlify env vars, redeployed
 - [ ] Settings filled (USDT address + network, notification email)
 - [ ] TEST_PLAN.md run end-to-end with 1 test subscriber (see that file)
 - [ ] Weekly Muse job created with the admin key

@@ -1,6 +1,9 @@
 // Shared helpers for Netlify Functions.
 // Converted from Cloudflare Pages Functions (Nov 2026) — same logic, same
-// Supabase / Brevo calls, same env-var names. Server-side only. Secrets come
+// Supabase calls. Sending moved from Brevo to Resend (Nov 2026): the Resend
+// Send Email API supports PDF attachments, which Broadcasts do not, so
+// readers can open the issue straight from Gmail with no link click and no
+// Google redirect page. Server-side only. Secrets come
 // from process.env (Netlify Site settings -> Environment variables), never
 // from the browser.
 //
@@ -90,7 +93,7 @@ export function trustScore(drop) {
   if (drop.effort) s += 10;
   return Math.min(100, s);
 }
-export function emailHtml({ title, intro, safety_tip, drops, siteUrl, unsubscribeUrl }) {
+export function emailHtml({ title, intro, safety_tip, drops, siteUrl, unsubscribeUrl, pdfUrl }) {
   const rows = (drops || []).map(d => `
     <h3>${d.name}${d.token ? ` (${d.token})` : ""} — closes ${d.deadline_at ? new Date(d.deadline_at).toUTCString() : "—"}</h3>
     <p><strong>Trust score: ${d.trust_score ?? "—"}/100</strong> · ${d.chain || ""} · Effort: ${d.effort || "—"}</p>
@@ -100,24 +103,37 @@ export function emailHtml({ title, intro, safety_tip, drops, siteUrl, unsubscrib
   return `<!doctype html><html><body style="font-family:system-ui,Arial,sans-serif;max-width:640px;margin:0 auto;padding:16px">
 <h1>Airdrop Lookout — ${title}</h1>
 <p>${intro || ""}</p>
+${pdfUrl ? `<p><a href="${pdfUrl}" style="display:inline-block;background:#0f766e;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Read this issue as a PDF</a></p>
+<p style="color:#666;font-size:13px">The PDF is also attached to this email, so you can open it straight from your inbox.</p>` : ""}
 ${rows}
 <h2>Stay safe this week</h2><p>${safety_tip || ""}</p>
 <p><strong>Never share your seed phrase or private key.</strong> No legitimate claim needs one.</p>
 <p style="color:#666;font-size:13px">You are receiving this because you signed up at ${siteUrl}. This is information, not financial advice. <a href="${unsubscribeUrl}">Unsubscribe</a></p>
 </body></html>`;
 }
-export async function sendViaBrevo(context, { to, subject, html }) {
-  const r = await fetch("https://api.brevo.com/v3/smtp/email", {
+// Send one email via the Resend Send Email API. Supports attachments
+// (Broadcasts do not), so the issue PDF rides along with the email and
+// readers can open it straight from Gmail — no link click, no Google
+// redirect page. One recipient per call, so nobody sees anyone else's
+// address. Server-side only: RESEND_API_KEY comes from env (Netlify Site
+// settings -> Environment variables). From address defaults to
+// newsletter@airdroplookout.com, overridable via RESEND_SENDER_EMAIL.
+export async function sendViaResend(context, { to, subject, html, attachments }) {
+  const apiKey = context.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY is not set — add it in Netlify Site settings -> Environment variables, then redeploy.");
+  const from = context.env.RESEND_SENDER_EMAIL || "newsletter@airdroplookout.com";
+  const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
-    headers: { "api-key": context.env.BREVO_API_KEY, "content-type": "application/json", accept: "application/json" },
+    headers: { Authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
     body: JSON.stringify({
-      sender: { name: context.env.BREVO_SENDER_NAME || "Airdrop Lookout", email: context.env.BREVO_SENDER_EMAIL },
-      to: [{ email: to }],
+      from: `Airdrop Lookout <${from}>`,
+      to: [to],
       subject,
-      htmlContent: html,
+      html,
+      ...(attachments && attachments.length ? { attachments } : {}),
     }),
   });
-  if (!r.ok) throw new Error(`Brevo ${r.status}: ${await r.text()}`);
+  if (!r.ok) throw new Error(`Resend ${r.status}: ${await r.text()}`);
   return r.json();
 }
 export function validEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim().toLowerCase()); }

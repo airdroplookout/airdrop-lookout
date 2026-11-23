@@ -7,7 +7,7 @@ any host that can run them — the recommended route is below.
 Cloudflare Pages.** Cloudflare's login verification kept blocking Muse's
 browser, so the site was moved. The old Cloudflare code is in the GitHub
 repo's history (commit `1eea607`); the live code in this folder is Netlify
-only. Supabase, Brevo, the front-end, the admin API and the weekly send flow
+only. Supabase, Resend, the front-end, the admin API and the weekly send flow
 are unchanged — only the hosting layer moved.
 
 ## What it is
@@ -24,7 +24,7 @@ address, emails the transaction ID, Adil marks them paid in Manage.
 | Domain | Porkbun, `airdroplookout.com` (confirmed 22 Nov 2026) | ~$11.81/year |
 | Hosting | Netlify Free (credit-based, see note below) | $0 |
 | Database | Supabase Pro — real Postgres, never pauses | $25/month |
-| Sending | Brevo Free — 300 emails/day, then Starter $9/month | $0 to start |
+| Sending | Resend Free — 3,000 emails/month, no address needed | $0 to start |
 | **First year** | | **~$311.81** |
 
 **Netlify Free — what it actually is (checked 22 Nov 2026):** new Netlify
@@ -57,7 +57,7 @@ public/                 Front-end (signup, board, issue, Safety, pricing, Manage
   styles.css            Deep navy / charcoal, teal accent (same look as Muse site)
 netlify/
   functions/            Netlify Functions (server code, Node-style, one per endpoint)
-    _lib.js             Shared Supabase / Brevo / auth helpers + handlerFor adapter
+    _lib.js             Shared Supabase / Resend / auth helpers + handlerFor adapter
     board.js            GET /api/board — public board + latest issue + settings
     subscribe.js        POST /api/subscribe — public signup (email only)
     unsubscribe.js      POST /api/unsubscribe
@@ -88,7 +88,7 @@ Cloudflare-style `context` (`{ request, env, params }`) from the Netlify
 event — `env` is `process.env`, `request` is a real `Request`, and `params.id`
 for the three `/api/admin/issues/:id/...` routes comes from the `?id=` the
 rewrite in `netlify.toml` adds. The endpoint logic itself is unchanged from
-the Cloudflare version: same Supabase REST calls, same Brevo calls, same
+the Cloudflare version: same Supabase REST calls, same
 `ADMIN_API_KEY` check, same trust-score maths. The public URLs are
 unchanged (`/api/*`), so the front-end and the weekly job need no changes.
 
@@ -116,7 +116,9 @@ intervening.** That is built in, not bolted on:
    `POST /api/admin/issues` → create draft → `POST /api/admin/issues/:id/publish`
    → `GET /api/admin/issues/:id/preview` → `POST /api/admin/issues/:id/send`
 3. The send endpoint fetches every active subscriber from Supabase, sends
-   **one individual email each via Brevo** (nobody sees anyone else's address),
+   **one individual email each via the Resend Send Email API** (nobody sees anyone else's address),
+   with the issue HTML in the body, a "Read this issue as a PDF" button linking to the PDF on
+   airdroplookout.com, and the issue PDF attached (so readers open it straight from Gmail),
    with an unsubscribe footer, and records the result in `sends` (logged in
    the `issues` row + a send log returned by the API).
 4. Nothing publishes unchecked by that research step. If no verified drops
@@ -137,7 +139,7 @@ card with preview + recipient count.
 
 - Domain: `airdroplookout.com` — confirmed 22 Nov 2026 (renamed from the
   `airdropwatch.com` placeholder, which was already taken). Change it once
-  in `public/config.js` (`SITE_DOMAIN`) and in Netlify/Brevo settings
+  in `public/config.js` (`SITE_DOMAIN`) and in Netlify/Resend settings
   if it ever changes.
 - USDT wallet address + network: **blank** in `settings`. Fill in Manage →
   Settings after launch. Never invent an address.
@@ -148,7 +150,7 @@ card with preview + recipient count.
 ## Quick start (local test)
 
 ```bash
-cp .env.example .env   # fill in Supabase + Brevo values from your dashboards
+cp .env.example .env   # fill in Supabase + Resend values from your dashboards
 npm install -g netlify-cli   # once, for local dev only
 netlify dev            # serves public/ + functions at http://localhost:8888
 ```
