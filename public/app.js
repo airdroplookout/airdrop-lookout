@@ -35,7 +35,7 @@ async function loadBoard(){
     $("#missed").innerHTML = iss
       ? `<p><strong>${esc(iss.title)}</strong> — ${esc(iss.week_label||"")}</p><p>${esc(iss.intro||"")}</p><p class="muted small">Members got the full deadline board, eligibility and steps. Non-members missed it.</p>`
       : `<p>No issue has gone out yet — so there is honestly nothing to have missed yet.</p>`;
-    const w = j.settings?.usdt_wallet_address, n = j.settings?.usdt_network;
+    const w = j.settings?.usdt_wallet_address || "TS5zyeDzJw9tjA56QtA8PFBEpLX4ywDQc2", n = j.settings?.usdt_network || "TRC20";
     $("#pay-address").textContent = w ? `Wallet address (${n||"USDT"}): ${w}` : "Wallet address: to be added by the owner.";
     $("#foot-domain").textContent = CFG.SITE_DOMAIN;
     renderBoard(); renderIssue();
