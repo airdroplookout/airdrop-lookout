@@ -12,7 +12,7 @@ are unchanged — only the hosting layer moved.
 
 ## What it is
 
-Weekly crypto airdrop newsletter. **$5/week in USDT, free first month.**
+Weekly crypto airdrop newsletter. **$10/month in USDT. Free for members who join before January 1, 2027.**
 Privacy-first: **we never ask readers for a wallet address.** Readers check
 their own eligibility. USDT payment is manual: the reader pays to Adil's
 address, emails the transaction ID, Adil marks them paid in Manage.
@@ -41,7 +41,7 @@ or back to Cloudflare Pages. The old figures you may see quoted elsewhere
 Legacy plan and do not apply to a new account.
 
 Why Netlify and not Vercel free: Vercel Hobby is personal, non-commercial use
-only, and Airdrop Lookout charges $5/week, so it is commercial — Pro would be
+only, and Airdrop Lookout charges $10/month, so it is commercial — Pro would be
 $20/month. **Netlify Free has no commercial-use restriction** — a paid site
 may run on it. Why not Beehiiv: it has its own database and templates; the
 custom airdrop board, trust scores, tick-off steps and USDT ledger would not
