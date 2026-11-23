@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en-CA">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airdrop Lookout — Every airdrop worth claiming. No wallet required.</title>
+<meta name="description" content="Weekly crypto airdrop digest: deadlines, eligibility and steps. $5/week in USDT, free first month. Privacy-first — we never ask for your wallet address.">
+<link rel="stylesheet" href="/styles.css">
+<script src="/config.js"></script>
+</head>
+<body>
+<header><div class="wrap nav">
+  <div class="logo">Airdrop <span>Lookout</span></div>
+  <button data-view="home" class="active">Home</button>
+  <button data-view="board">Airdrop board</button>
+  <button data-view="issue">Latest issue</button>
+  <button data-view="safety">Stay safe</button>
+  <button data-view="pricing">Pricing</button>
+  <button data-view="manage" style="margin-left:auto">Manage</button>
+</div></header>
+<main class="wrap" id="app">
+  <section data-page="home">
+    <div class="hero">
+      <span class="pill">Privacy-first · No wallet required</span>
+      <h1>Every airdrop worth claiming.<br>No wallet required.</h1>
+      <p>One weekly digest with the deadlines, eligibility rules and step-by-step
+      claim instructions — and nothing you have to hand over to use it. We never
+      ask for your wallet address, seed phrase or private key.</p>
+      <div class="card" id="countdown-card"><strong id="countdown">Loading next deadline…</strong><div class="muted small" id="countdown-sub"></div></div>
+    </div>
+    <div class="card">
+      <h2>Start free for a month</h2>
+      <p class="muted">Email only. After the free month, $5/week in USDT to keep receiving it.</p>
+      <form id="signup-form"><label for="email">Email address</label>
+        <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
+        <p><button class="btn" type="submit">Get the free month</button></p>
+        <p class="small muted">No wallet address. No card. Unsubscribe any time.</p>
+        <p id="signup-msg" role="status"></p>
+      </form>
+    </div>
+    <div class="card"><h2>How it works</h2>
+      <ol><li><strong>Sign up with email only.</strong></li>
+      <li><strong>Every week, Dexter researches live airdrops</strong> and verifies deadlines on the official project pages.</li>
+      <li><strong>You get the issue by email</strong> — deadlines in date order, eligibility, and tick-off steps. You check your own wallet yourself.</li></ol>
+      <p class="muted small">This is information, not financial advice. Rewards are never guaranteed. Always re-check the official project page before connecting a wallet.</p>
+    </div>
+    <div class="card" id="missed-card"><h2>What you missed / What members got</h2><div id="missed">Loading…</div></div>
+  </section>
+  <section data-page="board" class="hidden">
+    <h1>Airdrop board</h1>
+    <p class="muted">Live airdrops, in deadline order. <span id="board-count"></span></p>
+    <div class="tabs"><button data-filter="all" class="active">All</button><button data-filter="closing">Closing soon</button><button data-filter="latest">Latest</button></div>
+    <label for="board-search">Search</label><input id="board-search" placeholder="Search by name, token or chain…">
+    <div class="grid" id="board"></div>
+  </section>
+  <section data-page="issue" class="hidden"><h1>Latest issue</h1><div id="issue"></div></section>
+  <section data-page="safety" class="hidden">
+    <h1>Stay safe this week</h1>
+    <div class="card"><h2>5-tip checklist</h2><ul class="steps">
+      <li><label><input type="checkbox"> Turn on app-based 2FA on email, exchange and social accounts.</label></li>
+      <li><label><input type="checkbox"> Bookmark the official pages — then only ever claim from those bookmarks.</label></li>
+      <li><label><input type="checkbox"> Claim with the wallet that earned the allocation, then move rewards out.</label></li>
+      <li><label><input type="checkbox"> Keep claim money separate from your main funds.</label></li>
+      <li><label><input type="checkbox"> Revoke old token approvals. Stop on unlimited approvals or a signature you cannot explain.</label></li>
+    </ul></div>
+    <div class="card"><h2>Myth-buster</h2><p>“A real claim might ask for my seed phrase to verify me.” <strong>False — always.</strong> No legitimate project, support team or claim page ever needs your seed phrase or private key. The moment a site asks for one, close it.</p></div>
+    <div class="card"><h2>Red flags this week</h2><ul><li>DM and reply links for Treehouse, Hyperliquid “Season 2” or a MetaMask MASK claim</li><li>“Claim in 10 minutes or lose it” pressure</li><li>Being asked to send funds first to “unlock” a reward</li><li>Lookalike domains — extra letters, hyphens or a different ending</li></ul>
+    <p><strong>The 30-second rule:</strong> start from the official website or verified account — never a DM — read what you are about to sign, and if anything feels rushed, close the tab and check again later.</p></div>
+  </section>
+  <section data-page="pricing" class="hidden">
+    <h1>Pricing</h1>
+    <div class="grid">
+      <div class="card"><h2>Free first month</h2><p class="trust">$0</p><p>Every weekly issue, the live board, and the safety section. Email only.</p></div>
+      <div class="card"><h2>After the free month</h2><p class="trust">$5 / week</p><p>In USDT only. No card, no Stripe. You pay to the wallet address shown in Manage → Settings, email the transaction ID, and Adil marks you paid.</p><p class="muted small" id="pay-address">Wallet address: to be added by the owner.</p></div>
+    </div>
+    <div class="card"><h2>Pay with USDT</h2>
+      <label for="pay-email">Your email (the one you signed up with)</label><input id="pay-email" type="email">
+      <label for="pay-network">Network</label><select id="pay-network"><option>TRC20</option><option>ERC20</option><option>BEP20</option></select>
+      <label for="pay-txid">Transaction ID</label><input id="pay-txid" placeholder="Paste your USDT transaction ID">
+      <p><button class="btn" id="pay-submit">I paid — submit transaction ID</button></p>
+      <p id="pay-msg" role="status"></p>
+      <p class="muted small">Never share your seed phrase or private key. Only the public receiving address is ever shown. Use the same network for the payment and the address — a wrong-network payment can be lost.</p>
+    </div>
+  </section>
+  <section data-page="manage" class="hidden">
+    <h1>Manage — owner only</h1>
+    <div class="card" id="login-card">
+      <label for="admin-key">Admin API key</label>
+      <input id="admin-key" type="password" autocomplete="off" placeholder="ADMIN_API_KEY">
+      <p><button class="btn" id="login-btn">Open Manage</button></p>
+      <p class="muted small">The key is kept in this browser session only. Rotate it in Cloudflare Pages → Variables; old keys stop working immediately.</p>
+      <p id="login-msg" role="status"></p>
+    </div>
+    <div id="manage-body" class="hidden">
+      <div class="card"><h2>Send the newsletter to all subscribers</h2>
+        <p><span id="send-count">—</span> subscribers will receive it.</p>
+        <label for="send-issue">Issue</label><select id="send-issue"></select>
+        <p><button class="btn" id="preview-btn">Preview exact email</button>
+        <button class="btn" id="send-btn">Send to all subscribers</button></p>
+        <pre id="preview" class="small" style="white-space:pre-wrap"></pre>
+        <p id="send-msg" role="status"></p>
+        <p class="muted small" id="last-send"></p>
+      </div>
+      <div class="card"><h2>Upload newsletter</h2>
+        <p class="muted">Fallback if Dexter is not sending it for you. Upload a .txt or .md file — it becomes a draft issue. For a .pdf, upload it here and paste its text below (PDF text is not extracted in the browser).</p>
+        <input id="upload-file" type="file" accept=".txt,.md,.pdf">
+        <label for="upload-text">Newsletter text</label><textarea id="upload-text" rows="8"></textarea>
+        <label for="upload-title">Issue title</label><input id="upload-title" placeholder="Issue 2 — …">
+        <p><button class="btn" id="upload-btn">Create draft issue from upload</button></p>
+        <p id="upload-msg" role="status"></p>
+      </div>
+      <div class="card"><h2>Subscribers</h2><p><button class="btn ghost" id="export-btn">Export subscribers (CSV)</button></p><div id="subscribers">Loading…</div></div>
+      <div class="card"><h2>Issues</h2><div id="issues">Loading…</div></div>
+      <div class="card"><h2>Airdrops — pipeline</h2><p class="muted small">Draft → approved → live. Nothing goes live unchecked.</p><div id="airdrops-admin">Loading…</div></div>
+      <div class="card"><h2>Payments (USDT)</h2><div id="payments">Loading…</div></div>
+      <div class="card"><h2>Settings</h2>
+        <label for="set-wallet">USDT wallet address (public receiving address — never a seed phrase)</label><input id="set-wallet">
+        <label for="set-network">USDT network</label><select id="set-network"><option value="">— choose —</option><option>TRC20</option><option>ERC20</option><option>BEP20</option></select>
+        <label for="set-email">Notification email</label><input id="set-email" type="email">
+        <label for="set-telegram">Telegram channel link</label><input id="set-telegram">
+        <p><button class="btn" id="save-settings">Save settings</button></p><p id="settings-msg" role="status"></p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer><div class="wrap">Airdrop Lookout · <span id="foot-domain">airdroplookout.com</span> · $5/week in USDT after a free first month · We never ask for your wallet address · Not financial advice.</div></footer>
+<script src="/app.js"></script>
+</body>
+</html>
