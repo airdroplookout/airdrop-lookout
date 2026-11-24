@@ -39,7 +39,10 @@ $$(".nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.
 if (window.location.pathname.replace(/\/+$/, "") === "/manage") show("manage");
 // Visits counter — one count per browser session, public pages only
 // (never /manage, so the owner's own visits do not inflate the numbers).
-if (window.location.pathname.replace(/\/+$/, "") !== "/manage" && !sessionStorage.getItem("aw_visit_counted")) {
+// The owner can also switch counting off on one device from Manage
+// ("Don't count my visits on this device" sets aw_exclude_me).
+let awExcluded = false; try { awExcluded = localStorage.getItem("aw_exclude_me") === "1"; } catch (e) {}
+if (window.location.pathname.replace(/\/+$/, "") !== "/manage" && !awExcluded && !sessionStorage.getItem("aw_visit_counted")) {
   sessionStorage.setItem("aw_visit_counted", "1");
   fetch("/api/track", { method: "POST", keepalive: true }).catch(() => {});
 }
@@ -249,6 +252,19 @@ async function loadAdmin(){
   $("#send-count").textContent = j.active_subscribers ?? "—";
   const v = j.visits || {};
   $("#visits").innerHTML = `<table><tr><th>Today</th><th>This week</th><th>This month</th><th>This year</th></tr><tr><td>${v.today ?? "—"}</td><td>${v.week ?? "—"}</td><td>${v.month ?? "—"}</td><td>${v.year ?? "—"}</td></tr></table>`;
+  // "Don't count my visits on this device" — per-device opt-out stored
+  // only in this browser's localStorage (aw_exclude_me). No IP, no
+  // server-side record. The track code checks the flag first.
+  const refreshExclude = () => {
+    let off = false; try { off = localStorage.getItem("aw_exclude_me") === "1"; } catch (e) {}
+    const exBtn = $("#exclude-visits-btn"), exStatus = $("#exclude-visits-status");
+    if (exBtn) {
+      exBtn.textContent = off ? "Count my visits on this device again" : "Don't count my visits on this device";
+      exBtn.onclick = () => { try { if (off) localStorage.removeItem("aw_exclude_me"); else localStorage.setItem("aw_exclude_me", "1"); } catch (e) {} refreshExclude(); };
+    }
+    if (exStatus) exStatus.textContent = off ? "Your visits on this device are NOT counted." : "Your visits on this device are counted.";
+  };
+  refreshExclude();
   $("#last-send").textContent = j.last_send ? `Last send: ${j.last_send}` : "No send yet.";
   $("#send-issue").innerHTML = (j.issues||[]).map(i => `<option value="${i.id}">${esc(i.title)} (${i.status})</option>`).join("");
   $("#subscribers").innerHTML = `<table><tr><th>Email</th><th>Status</th><th>Free month ends</th><th></th></tr>${(j.subscribers||[]).map(s=>`<tr><td>${esc(s.email)}</td><td>${esc(s.status)}</td><td>${s.free_trial_ends_at?new Date(s.free_trial_ends_at).toLocaleDateString():"—"}</td><td>${s.status==="archived"
@@ -303,6 +319,44 @@ $("#login-btn").addEventListener("click", async () => {
   loadAdmin();
 });
 $("#admin-password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#login-btn").click(); });
+// ---- "Forgot password?" — the reset email goes only to the owner's
+// inbox, so there is no address to type here. The server always
+// answers with the same message, so this never reveals whether a
+// reset email was sent.
+$("#forgot-btn").addEventListener("click", async () => {
+  $("#forgot-msg").textContent = "Sending…";
+  const r = await fetch("/api/admin/forgot", { method: "POST", headers: { "content-type": "application/json" }, body: "{}" });
+  const j = await r.json().catch(() => ({}));
+  $("#forgot-msg").textContent = j.message || "If a reset email could be sent, check your inbox — the link works once and expires in 30 minutes.";
+});
+// Reset view — the reset email links here as /manage?reset=<token>.
+const resetToken = new URLSearchParams(location.search).get("reset") || "";
+if (resetToken) {
+  $("#login-card").classList.add("hidden");
+  $("#manage-body").classList.add("hidden");
+  $("#reset-card").classList.remove("hidden");
+}
+$("#reset-btn").addEventListener("click", async () => {
+  const p1 = $("#reset-password").value, p2 = $("#reset-password2").value;
+  if (!p1 || p1 !== p2) { $("#reset-msg").textContent = "The two passwords do not match."; return; }
+  if (p1.length < 8) { $("#reset-msg").textContent = "Choose a password of at least 8 characters."; return; }
+  $("#reset-msg").textContent = "Changing…";
+  const r = await fetch("/api/admin/reset", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: resetToken, password: p1 }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || !j.ok) { $("#reset-msg").textContent = j.error || "This reset link is invalid or has expired."; return; }
+  $("#reset-msg").textContent = "Password changed — sign in with your new password.";
+  $("#reset-password").value = ""; $("#reset-password2").value = "";
+  setTimeout(() => {
+    $("#reset-card").classList.add("hidden");
+    $("#login-card").classList.remove("hidden");
+    $("#login-msg").textContent = "";
+    // Clean the token out of the address bar so it cannot be reused,
+    // shared, or left in history.
+    try { history.replaceState(null, "", "/manage"); } catch (e) {}
+  }, 1500);
+});
+$("#reset-password").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#reset-btn").click(); });
+$("#reset-password2").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#reset-btn").click(); });
 $("#logout-btn").addEventListener("click", () => {
   adminSession = ""; localStorage.removeItem("aw_admin_session");
   $("#manage-body").classList.add("hidden"); $("#login-card").classList.remove("hidden");
