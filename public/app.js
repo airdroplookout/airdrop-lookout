@@ -28,12 +28,29 @@ function trustBadge(score){
 }
 function show(view){
   $$("[data-page]").forEach(s => s.classList.toggle("hidden", s.dataset.page !== view));
-  $$(".nav button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  $$(".nav-menu button").forEach(b => b.classList.toggle("active", b.dataset.view === view));
+  document.body.classList.toggle("is-manage", view === "manage");
+  closeNav();
   if (view === "board") renderBoard();
   if (view === "issue") renderIssue();
   if (view === "manage" && adminSession) loadAdmin();
 }
-$$(".nav button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
+$$(".nav-menu button").forEach(b => b.addEventListener("click", () => show(b.dataset.view)));
+// Hamburger menu (mobile): opens the nav list, closes on pick / Escape.
+const navEl = document.querySelector(".nav");
+const navToggle = $("#nav-toggle");
+function closeNav(){
+  if (!navEl || !navToggle) return;
+  navEl.classList.remove("open");
+  navToggle.setAttribute("aria-expanded", "false");
+  navToggle.setAttribute("aria-label", "Open menu");
+}
+if (navToggle && navEl) navToggle.addEventListener("click", () => {
+  const open = navEl.classList.toggle("open");
+  navToggle.setAttribute("aria-expanded", String(open));
+  navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeNav(); });
 // Hidden owner route: /manage opens the Manage view. There is no public
 // link to it anywhere on the site — only someone who knows the URL gets here.
 if (window.location.pathname.replace(/\/+$/, "") === "/manage") show("manage");
@@ -170,6 +187,15 @@ loadPrices();
 setInterval(loadPrices, 300000);
 
 // Sticky mobile signup — jumps to the signup card on the home view.
+const stickyCta = $("#sticky-cta");
+const stickyClose = $("#sticky-cta-close");
+let stickyDismissed = false;
+try { stickyDismissed = sessionStorage.getItem("aw_sticky_dismissed") === "1"; } catch(e){}
+if (stickyDismissed && stickyCta) stickyCta.style.display = "none";
+if (stickyClose) stickyClose.addEventListener("click", () => {
+  if (stickyCta) stickyCta.style.display = "none";
+  try { sessionStorage.setItem("aw_sticky_dismissed", "1"); } catch(e){}
+});
 const stickyBtn = $("#sticky-cta-btn");
 if (stickyBtn) stickyBtn.addEventListener("click", (e) => {
   e.preventDefault(); show("home");

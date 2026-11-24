@@ -11,11 +11,14 @@
 <body>
 <header><div class="wrap nav">
   <a class="logo" href="/" aria-label="Airdrop Lookout — home"><img src="/logo.png" alt="Airdrop Lookout"></a>
+  <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Open menu">☰</button>
+  <nav class="nav-menu" id="nav-menu" aria-label="Main navigation">
   <button data-view="home" class="active">Home</button>
   <button data-view="board">Airdrop board</button>
   <button data-view="issue">Latest issue</button>
   <button data-view="safety">Stay safe</button>
   <button data-view="pricing">Pricing</button>
+  </nav>
 </div></header>
 <main class="wrap" id="app">
   <section data-page="home">
@@ -127,7 +130,7 @@
       <p>Like the newsletter? A voluntary tip in USDT keeps the research going. Any amount helps — and tips are never required. The newsletter stays free until January 1, 2027 either way.</p>
       <p class="muted small">USDT address (TRC20): <span class="mono" id="tip-address">TS5zyeDzJw9tjA56QtA8PFBEpLX4ywDQc2</span></p>
       <p><button class="btn ghost" id="tip-copy">Copy address</button> <span id="tip-msg" role="status" class="small muted"></span></p>
-      <p><img src="/usdt-qr.png" alt="Scan to tip USDT (TRC20)" style="max-width:180px;width:100%;height:auto"></p>
+      <p class="tip-qr"><img src="/usdt-qr.png" alt="Scan to tip USDT (TRC20)" style="max-width:180px;width:100%;height:auto"></p>
       <p class="muted small">Scan the QR code to tip in USDT on TRC20 — or copy the address above. Never share a seed phrase or private key.</p>
     </div>
     <div class="card verify-strip"><h2>How we verify</h2>
@@ -154,11 +157,6 @@
     </div>
     <div class="card" id="sample-card-2"><h2>See Issue #2 — before you sign up</h2>
       <p class="muted">The newest issue — Week 47, November 23–29, 2026. One full entry, the rest blurred — <a href="https://airdroplookout.com/issues/issue-2.pdf" target="_blank" rel="noopener">read the full Issue #2 (PDF)</a>.</p>
-      <div class="ad-slot">
-        <h3>Advertise Here</h3>
-        <p>Put your project in front of thousands of engaged crypto readers every week, inside the newsletter they actually read.</p>
-        <p><a href="mailto:contact@airdroplookout.com">Email contact@airdroplookout.com to advertise</a></p>
-      </div>
       <div class="sample-entry">
         <h3>Treehouse (TREE) — Season 2 · closes Nov 25, 07:00 UTC</h3>
         <p><strong>Who qualifies:</strong> any ONE of — held at least 500 “Final Nuts” at the Apr 25, 2026 snapshot; cast at least one vote in a Season 2 governance poll; hold a Treehouse Squirrel Council NFT. Wallets flagged in the Sybil check receive less or nothing.</p>
@@ -173,6 +171,11 @@
         <p>Plus Midnight, StandX, Grass — Stage 2, the farming rankings, and the week’s Safety Playbook.</p>
       </div>
       <p><a class="btn" href="https://airdroplookout.com/issues/issue-2.pdf" target="_blank" rel="noopener">Read the full Issue #2 (PDF)</a></p>
+    </div>
+    <div class="ad-slot" aria-label="Advertise here">
+      <h3>Advertise Here</h3>
+      <p>Put your project in front of thousands of engaged crypto readers every week, inside the newsletter they actually read.</p>
+      <p><a href="mailto:contact@airdroplookout.com">Email contact@airdroplookout.com to advertise</a></p>
     </div>
     <div class="card"><h2>How it works</h2>
       <ol><li><strong>Sign up with email only.</strong></li>
@@ -297,8 +300,8 @@
     </div>
   </section>
 </main>
-<footer><div class="wrap">Airdrop Lookout · <span id="foot-domain">airdroplookout.com</span> · $10/month in USDT · Free for members who join before January 1, 2027 · We never ask for your wallet address · <a href="mailto:contact@airdroplookout.com">Contact us</a> · Not financial advice.<div class="listed-badges"><span>Listed on</span> <a href="https://www.promptfrenzy.com/directory" rel="noopener" target="_blank" title="Featured on PromptFrenzy AI Directory"><img src="https://www.promptfrenzy.com/badges/directory-mono-light.svg" alt="Featured on PromptFrenzy AI Directory" width="220" height="44" /></a> <a href="https://goodsaas.xyz/saas/airdrop-lookout" target="_blank" rel="noopener"><img src="https://goodsaas.xyz/badge/airdrop-lookout.svg?theme=light" alt="Airdrop Lookout on goodSaaS" /></a> <a href="https://saaslineup.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://saaslineup.com/badge/airdrop-lookout.svg" alt="Featured on SaaSLineup" width="182" height="46" /></a> <a href="https://thesaasdir.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://thesaasdir.com/badge/airdrop-lookout.svg" alt="Featured on TheSaaSDir" width="182" height="46" /></a> <a href="https://indielineup.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://indielineup.com/badge/airdrop-lookout.svg" alt="Featured on IndieLineup" width="182" height="46" /></a> <a href="https://thedevtoolsindex.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://thedevtoolsindex.com/badge/airdrop-lookout.svg" alt="Featured on TheDevToolsIndex" width="182" height="46" /></a> <a href="https://thedevtoolslist.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://thedevtoolslist.com/badge/airdrop-lookout.svg" alt="Featured on TheDevToolsList" width="182" height="46" /></a> <a href="https://skylaun.ch/finance/airdrop-lookout" target="_blank" rel="noopener"><img src="https://skylaun.ch/badge/skylaunch-badge-light.svg" alt="Featured on Sky Launch" width="188" height="56" /></a> <a href="https://tool-list.dev/finance/airdrop-lookout" target="_blank" rel="noopener"><img src="https://tool-list.dev/badge/toolwall-badge-light.svg" alt="Featured on Tool List" width="188" height="56" /></a> <a href="https://easydofollow.dev/finance/airdrop-lookout" target="_blank" rel="noopener"><img src="https://easydofollow.dev/badge/easydofollow-badge-light.svg" alt="Featured on EasyDoFollow" width="188" height="56" /></a> <span class="tiny-backlink"><a href="https://cursoverificado.com/">reseñas de cursos online</a></span></div></div></footer>
-<div id="sticky-cta"><a href="#" id="sticky-cta-btn" class="btn">Start free</a></div>
+<footer><div class="wrap">Airdrop Lookout · <span id="foot-domain">airdroplookout.com</span> <span class="foot-price">· $10/month in USDT · Free for members who join before January 1, 2027</span> · We never ask for your wallet address · <a class="foot-contact" href="mailto:contact@airdroplookout.com">Contact us</a> · Not financial advice.<div class="listed-badges"><span>Listed on</span> <a href="https://www.promptfrenzy.com/directory" rel="noopener" target="_blank" title="Featured on PromptFrenzy AI Directory"><img src="https://www.promptfrenzy.com/badges/directory-mono-light.svg" alt="Featured on PromptFrenzy AI Directory" width="220" height="44" /></a> <a href="https://goodsaas.xyz/saas/airdrop-lookout" target="_blank" rel="noopener"><img src="https://goodsaas.xyz/badge/airdrop-lookout.svg?theme=light" alt="Airdrop Lookout on goodSaaS" /></a> <a href="https://saaslineup.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://saaslineup.com/badge/airdrop-lookout.svg" alt="Featured on SaaSLineup" width="182" height="46" /></a> <a href="https://thesaasdir.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://thesaasdir.com/badge/airdrop-lookout.svg" alt="Featured on TheSaaSDir" width="182" height="46" /></a> <a href="https://indielineup.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://indielineup.com/badge/airdrop-lookout.svg" alt="Featured on IndieLineup" width="182" height="46" /></a> <a href="https://thedevtoolsindex.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://thedevtoolsindex.com/badge/airdrop-lookout.svg" alt="Featured on TheDevToolsIndex" width="182" height="46" /></a> <a href="https://thedevtoolslist.com/product/airdrop-lookout?ref=badge" rel="dofollow"><img src="https://thedevtoolslist.com/badge/airdrop-lookout.svg" alt="Featured on TheDevToolsList" width="182" height="46" /></a> <a href="https://skylaun.ch/finance/airdrop-lookout" target="_blank" rel="noopener"><img src="https://skylaun.ch/badge/skylaunch-badge-light.svg" alt="Featured on Sky Launch" width="188" height="56" /></a> <a href="https://tool-list.dev/finance/airdrop-lookout" target="_blank" rel="noopener"><img src="https://tool-list.dev/badge/toolwall-badge-light.svg" alt="Featured on Tool List" width="188" height="56" /></a> <a href="https://easydofollow.dev/finance/airdrop-lookout" target="_blank" rel="noopener"><img src="https://easydofollow.dev/badge/easydofollow-badge-light.svg" alt="Featured on EasyDoFollow" width="188" height="56" /></a></div></div></footer>
+<div id="sticky-cta"><a href="#" id="sticky-cta-btn" class="btn">Start free</a><button class="sticky-cta-close" id="sticky-cta-close" type="button" aria-label="Hide this button">×</button></div>
 <div id="welcome-popup" class="hidden" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title">
   <div class="popup-backdrop" data-popup-close></div>
   <div class="popup-card">
