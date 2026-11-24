@@ -12,7 +12,7 @@
 // handlerFor builds a Cloudflare-style `context` ({ request, env, params })
 // from the Netlify `event`, calls the method handler, and converts the
 // returned Response into Netlify's { statusCode, headers, body } shape.
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, timingSafeEqual, scryptSync, randomBytes, createHash } from "node:crypto";
 // Escape text interpolated into HTML (email body, and anywhere else
 // server-rendered HTML is built). The website already escapes in the
 // browser (esc() in public/app.js); the newsletter email did not —
@@ -156,17 +156,22 @@ export function verifyUnsubscribeToken(env, token) {
   } catch { return null; }
 }
 // --- Manage login rate limiting ---
-// 5 wrong passwords from one client IP inside 15 minutes locks that IP
-// out of /api/admin/login for 15 minutes. State lives in the settings
-// table (key admin_login_lockout) so it survives across lambda
-// invocations. Only the IP is stored, hashed — never the raw address.
-// The lockout is checked before the password is compared, so it cannot
-// be bypassed by switching endpoints: /api/admin/login is the only place
-// a password is ever accepted.
+// 5 wrong passwords inside 15 minutes locks the admin login out of
+// /api/admin/login for 15 minutes — GLOBAL, not per IP: one shared
+// budget for the single admin account, so rotating IPs cannot buy
+// fresh 5-try budgets. The per-IP limit stays as a second layer.
+// State lives in the settings table (key admin_login_lockout) so it
+// survives across lambda invocations. Only the IP is stored, hashed —
+// never the raw address. The lockout is checked before the password is
+// compared, so it cannot be bypassed by switching endpoints:
+// /api/admin/login is the only place a password is ever accepted.
+// FAIL CLOSED: if the lockout state cannot be read or written, login is
+// refused instead of silently letting attempts continue unchecked.
 export const LOGIN_MAX_FAILS = 5;
 export const LOGIN_LOCKOUT_MS = 15 * 60 * 1000;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const LOGIN_LOCKOUT_KEY = "admin_login_lockout";
+const GLOBAL_LOCKOUT_ID = "__global__";
 function loginClientId(context) {
   const h = context.request.headers;
   const ip = h.get("x-nf-client-connection-ip")
@@ -175,11 +180,12 @@ function loginClientId(context) {
   return createHmac("sha256", context.env.ADMIN_API_KEY || "airdrop-lookout").update(ip).digest("hex").slice(0, 16);
 }
 async function readLockoutState(context) {
-  try {
-    const rows = await sbJson(context, `settings?select=value&key=eq.${LOGIN_LOCKOUT_KEY}&limit=1`);
-    const state = JSON.parse(rows[0]?.value || "{}");
-    return (state && typeof state === "object") ? state : {};
-  } catch { return {}; }
+  // Throws on read failure instead of returning an empty state: a
+  // failed read must fail closed (refuse login), never silently reset
+  // the failure budget to zero.
+  const rows = await sbJson(context, `settings?select=value&key=eq.${LOGIN_LOCKOUT_KEY}&limit=1`);
+  const state = JSON.parse(rows[0]?.value || "{}");
+  return (state && typeof state === "object") ? state : {};
 }
 async function writeLockoutState(context, state) {
   await sbJson(context, "settings?on_conflict=key", {
@@ -190,32 +196,176 @@ async function writeLockoutState(context, state) {
 }
 export async function checkLoginAllowed(context) {
   const state = await readLockoutState(context);
+  const now = Date.now();
+  const global = state[GLOBAL_LOCKOUT_ID];
+  if (global && global.locked_until && now < global.locked_until) {
+    return { allowed: false, retry_after_ms: global.locked_until - now };
+  }
   const entry = state[loginClientId(context)];
-  if (entry && entry.locked_until && Date.now() < entry.locked_until) {
-    return { allowed: false, retry_after_ms: entry.locked_until - Date.now() };
+  if (entry && entry.locked_until && now < entry.locked_until) {
+    return { allowed: false, retry_after_ms: entry.locked_until - now };
   }
   return { allowed: true };
+}
+function bumpLockoutEntry(entry, now) {
+  const e = entry || { fails: 0, first_at: now };
+  if (now - (e.first_at || now) > LOGIN_WINDOW_MS) { e.fails = 0; e.first_at = now; delete e.locked_until; }
+  e.fails += 1;
+  if (e.fails >= LOGIN_MAX_FAILS) e.locked_until = now + LOGIN_LOCKOUT_MS;
+  return e;
 }
 export async function recordFailedLogin(context) {
   const state = await readLockoutState(context);
   const id = loginClientId(context);
   const now = Date.now();
-  // Prune entries older than a day so the row does not grow forever.
+  // Prune per-IP entries older than a day so the row does not grow
+  // forever. The global entry is pruned by its own 15-minute window
+  // inside bumpLockoutEntry instead, so it is skipped here.
   for (const [k, v] of Object.entries(state)) {
+    if (k === GLOBAL_LOCKOUT_ID) continue;
     if (!v || now - (v.first_at || 0) > 24 * 60 * 60 * 1000) delete state[k];
   }
-  const entry = state[id] || { fails: 0, first_at: now };
-  if (now - (entry.first_at || now) > LOGIN_WINDOW_MS) { entry.fails = 0; entry.first_at = now; delete entry.locked_until; }
-  entry.fails += 1;
-  if (entry.fails >= LOGIN_MAX_FAILS) entry.locked_until = now + LOGIN_LOCKOUT_MS;
-  state[id] = entry;
+  state[id] = bumpLockoutEntry(state[id], now);
+  const global = bumpLockoutEntry(state[GLOBAL_LOCKOUT_ID], now);
+  state[GLOBAL_LOCKOUT_ID] = global;
   await writeLockoutState(context, state);
-  return entry;
+  // Report the stricter of the two budgets, so the "attempts left"
+  // message always reflects the global budget an attacker actually faces.
+  const fails = Math.max(state[id].fails, global.fails);
+  const locked_until = Math.max(state[id].locked_until || 0, global.locked_until || 0) || undefined;
+  return { fails, locked_until };
 }
 export async function clearLoginLockout(context) {
   const state = await readLockoutState(context);
   delete state[loginClientId(context)];
+  delete state[GLOBAL_LOCKOUT_ID];
   await writeLockoutState(context, state);
+}
+// --- Manage "Forgot password?" flow ---
+// The owner is the only admin, and the reset email goes ONLY to his
+// address (taradil@gmail.com) — the requester never supplies a
+// recipient, so the endpoint cannot be used to send mail to anyone
+// else. One-time token, 30-minute expiry, stored only as a SHA-256
+// hash in the settings table (key admin_reset_token), deleted on first
+// use. Reset requests are rate-limited to 3 per hour per site (key
+// admin_reset_requests) so the inbox cannot be spammed. A reset
+// request never touches the login lockout: it must work even while the
+// owner is locked out of /api/admin/login, and it must never burn
+// lockout attempts. The forgot/reset endpoints always answer with the
+// same generic message, so they never reveal whether a token or an
+// email address is valid.
+// The admin password itself can live in the database as a scrypt hash
+// (key admin_password_hash). The ADMIN_PASSWORD env var stays as a
+// FALLBACK while no database password exists, so the current password
+// keeps working and this change can never lock the owner out. Once a
+// database password is set, it is the only password that works.
+export const OWNER_EMAIL = "taradil@gmail.com";
+const ADMIN_PASSWORD_HASH_KEY = "admin_password_hash";
+const ADMIN_RESET_TOKEN_KEY = "admin_reset_token";
+const ADMIN_RESET_REQUESTS_KEY = "admin_reset_requests";
+export const ADMIN_RESET_TTL_MS = 30 * 60 * 1000;
+export const ADMIN_RESET_MAX_PER_HOUR = 3;
+const RESET_WINDOW_MS = 60 * 60 * 1000;
+export const ADMIN_PASSWORD_MIN_LENGTH = 8;
+
+async function getSettingValue(context, key) {
+  const rows = await sbJson(context, `settings?select=value&key=eq.${key}&limit=1`);
+  return rows[0]?.value ?? null;
+}
+async function setSettingValue(context, key, value) {
+  await sbJson(context, "settings?on_conflict=key", {
+    method: "POST",
+    headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+    body: JSON.stringify({ key, value }),
+  });
+}
+async function deleteSettingValue(context, key) {
+  await sbJson(context, `settings?key=eq.${key}`, { method: "DELETE" });
+}
+export function hashAdminPassword(password) {
+  const salt = randomBytes(16).toString("hex");
+  const hash = scryptSync(password, salt, 64).toString("hex");
+  return `scrypt$${salt}$${hash}`;
+}
+export function verifyAdminPasswordHash(password, stored) {
+  try {
+    const parts = String(stored || "").split("$");
+    if (parts.length !== 3 || parts[0] !== "scrypt") return false;
+    const derived = scryptSync(password, parts[1], 64);
+    const expected = Buffer.from(parts[2], "hex");
+    return derived.length === expected.length && timingSafeEqual(derived, expected);
+  } catch { return false; }
+}
+// True when a Manage password is configured at all (database hash or
+// ADMIN_PASSWORD env var). Throws when the settings table cannot be
+// read, so the caller fails closed instead of guessing.
+export async function adminPasswordConfigured(context) {
+  const stored = await getSettingValue(context, ADMIN_PASSWORD_HASH_KEY);
+  if (stored) return true;
+  return Boolean(context.env.ADMIN_PASSWORD);
+}
+// "ok" | "wrong" | "not-set". The database hash wins when one exists;
+// otherwise the ADMIN_PASSWORD env var is the fallback. Throws when
+// the settings table cannot be read, so login fails closed.
+export async function checkAdminPassword(context, given) {
+  const stored = await getSettingValue(context, ADMIN_PASSWORD_HASH_KEY);
+  if (stored) return verifyAdminPasswordHash(given, stored) ? "ok" : "wrong";
+  const envPassword = context.env.ADMIN_PASSWORD;
+  if (!envPassword) return "not-set";
+  return timingSafeCompare(given, envPassword) ? "ok" : "wrong";
+}
+export async function setAdminPasswordHash(context, password) {
+  await setSettingValue(context, ADMIN_PASSWORD_HASH_KEY, hashAdminPassword(password));
+}
+// Create a one-time reset token and store only its SHA-256 hash plus
+// expiry. The raw token is returned to the caller (it goes into the
+// email link); it is never stored.
+export async function createAdminResetToken(context) {
+  const token = randomBytes(32).toString("hex");
+  const hash = createHash("sha256").update(token).digest("hex");
+  const record = { hash, expires_at: Date.now() + ADMIN_RESET_TTL_MS, created_at: Date.now() };
+  await setSettingValue(context, ADMIN_RESET_TOKEN_KEY, JSON.stringify(record));
+  return token;
+}
+export async function verifyAdminResetToken(context, token) {
+  try {
+    if (typeof token !== "string" || !token) return false;
+    const raw = await getSettingValue(context, ADMIN_RESET_TOKEN_KEY);
+    if (!raw) return false;
+    const record = JSON.parse(raw);
+    if (!record || typeof record !== "object") return false;
+    if (!record.hash || !record.expires_at || Date.now() > record.expires_at) return false;
+    const givenHash = createHash("sha256").update(token).digest("hex");
+    return timingSafeCompare(givenHash, record.hash);
+  } catch { return false; }
+}
+export async function consumeAdminResetToken(context) {
+  await deleteSettingValue(context, ADMIN_RESET_TOKEN_KEY);
+}
+// Rolling 1-hour window, max 3 reset requests. Returns true when this
+// request may proceed (and records it); false when rate-limited. The
+// caller answers with the same generic message either way.
+export async function checkResetRequestAllowed(context) {
+  const now = Date.now();
+  let rec = { window_start: now, count: 0 };
+  try {
+    const raw = await getSettingValue(context, ADMIN_RESET_REQUESTS_KEY);
+    if (raw) { const parsed = JSON.parse(raw); if (parsed && typeof parsed === "object") rec = parsed; }
+  } catch { /* corrupt row: start a fresh window */ }
+  if (now - (rec.window_start || 0) > RESET_WINDOW_MS) rec = { window_start: now, count: 0 };
+  if ((rec.count || 0) >= ADMIN_RESET_MAX_PER_HOUR) return false;
+  rec.count = (rec.count || 0) + 1;
+  await setSettingValue(context, ADMIN_RESET_REQUESTS_KEY, JSON.stringify(rec));
+  return true;
+}
+// Revoke every Manage session (bumps admin_session_version, as
+// POST /api/admin/logout-all does) — used after a password reset so a
+// stolen old session cannot keep working under the new password.
+export async function bumpAdminSessionVersion(context) {
+  const current = await getSessionVersion(context);
+  const next = current + 1;
+  await setSettingValue(context, "admin_session_version", String(next));
+  return next;
 }
 // Constant-time string comparison (for passwords and tokens). Never use
 // === for secrets: it leaks how many leading characters matched.
