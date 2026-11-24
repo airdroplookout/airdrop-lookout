@@ -110,4 +110,4 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "DENY"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.promptfrenzy.com https://goodsaas.xyz https://saaslineup.com https://thesaasdir.com https://indielineup.com https://thedevtoolsindex.com; font-src 'self'; connect-src 'self' https://api.coingecko.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://www.promptfrenzy.com https://goodsaas.xyz https://saaslineup.com https://thesaasdir.com https://indielineup.com https://thedevtoolsindex.com https://thedevtoolslist.com https://skylaun.ch https://tool-list.dev https://easydofollow.dev https://www.easydofollow.dev; font-src 'self'; connect-src 'self' https://api.coingecko.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
