@@ -31,6 +31,14 @@
   to = "/.netlify/functions/admin-login"
   status = 200
 [[redirects]]
+  from = "/api/admin/forgot"
+  to = "/.netlify/functions/admin-forgot"
+  status = 200
+[[redirects]]
+  from = "/api/admin/reset"
+  to = "/.netlify/functions/admin-reset"
+  status = 200
+[[redirects]]
   from = "/api/admin/logout-all"
   to = "/.netlify/functions/admin-logout-all"
   status = 200
