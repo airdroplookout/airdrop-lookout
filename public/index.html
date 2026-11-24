@@ -248,12 +248,24 @@
       <label for="admin-password">Manage password</label>
       <input id="admin-password" type="password" autocomplete="current-password" placeholder="Your Manage password">
       <p><button class="btn" id="login-btn">Log in</button></p>
+      <p><button class="btn ghost" id="forgot-btn" type="button">Forgot password?</button></p>
       <p class="muted small">One short password you chose — it works from any phone, and you stay logged in for 30 days.</p>
       <p id="login-msg" role="status"></p>
+      <p id="forgot-msg" role="status"></p>
+    </div>
+    <div class="card hidden" id="reset-card">
+      <h2>Choose a new password</h2>
+      <p class="muted small">This link works once and expires 30 minutes after it was sent.</p>
+      <label for="reset-password">New password</label>
+      <input id="reset-password" type="password" autocomplete="new-password" placeholder="At least 8 characters">
+      <label for="reset-password2">Repeat the new password</label>
+      <input id="reset-password2" type="password" autocomplete="new-password" placeholder="Repeat the new password">
+      <p><button class="btn" id="reset-btn">Change password</button></p>
+      <p id="reset-msg" role="status"></p>
     </div>
     <div id="manage-body" class="hidden">
       <p><button class="btn ghost" id="logout-btn">Log out</button></p>
-      <div class="card"><h2>Visits</h2><div id="visits">Loading…</div><p class="muted small">Counts start from the day this card was added — earlier visits were not tracked. One count per visit; bots are not counted.</p></div>
+      <div class="card"><h2>Visits</h2><div id="visits">Loading…</div><p class="muted small">Counts start from the day this card was added — earlier visits were not tracked. One count per visit; bots are not counted.</p><p><button id="exclude-visits-btn" class="btn ghost">Don't count my visits on this device</button></p><p id="exclude-visits-status" class="muted small">Your visits on this device are counted.</p></div>
       <div class="card"><h2>Send the newsletter to all subscribers</h2>
         <p><span id="send-count">—</span> subscribers will receive it.</p>
         <label for="send-issue">Issue</label><select id="send-issue"></select>
